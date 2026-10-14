@@ -72,12 +72,11 @@ export default function SettingsPage() {
                     disabled={isLast}
                     title={isLast ? "At least one language must stay on" : undefined}
                     onClick={() => setLangOn((s) => ({ ...s, [l.code]: !s[l.code] }))}
-                    className={`relative inline-flex h-9 w-[92px] flex-shrink-0 items-center rounded-full px-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-green/40 disabled:cursor-not-allowed disabled:opacity-60 ${
-                      on ? "bg-brand-green text-white" : "bg-brand-line text-brand-gray dark:bg-white/10 dark:text-white/60"
+                    className={`relative inline-flex h-8 w-14 flex-shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-green/40 disabled:cursor-not-allowed disabled:opacity-60 ${
+                      on ? "bg-brand-green" : "bg-brand-line dark:bg-white/15"
                     }`}
                   >
-                    <span className={`absolute h-7 w-7 rounded-full bg-white shadow transition-all ${on ? "left-[60px]" : "left-1"}`} />
-                    <span className={`w-full ${on ? "pr-8 text-left pl-2" : "pl-9 text-left"}`}>{on ? "On" : "Off"}</span>
+                    <span className={`absolute h-6 w-6 rounded-full bg-white shadow transition-all ${on ? "left-7" : "left-1"}`} />
                   </button>
                 </li>
               );
