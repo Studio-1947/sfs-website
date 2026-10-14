@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "./LanguageContext";
 import { learner, notices } from "@/lib/data";
 
 function HomeIcon({ active }: { active: boolean }) {
@@ -42,12 +43,13 @@ function BellIcon() {
 }
 
 const items = [
-  { key: "dashboard", href: "/dashboard", label: "Learn", icon: HomeIcon },
-  { key: "scholarship", href: "/scholarship", label: "Scope", icon: ScopeIcon },
+  { key: "dashboard", href: "/dashboard", labelKey: "nav.dashboard", icon: HomeIcon },
+  { key: "scholarship", href: "/scholarship", labelKey: "nav.scholarship", icon: ScopeIcon },
 ];
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <nav
@@ -61,6 +63,7 @@ export default function MobileNav() {
           <Link
             key={item.key}
             href={item.href}
+            aria-label={t(item.labelKey)}
             className={`relative flex flex-1 flex-col items-center justify-center gap-1 rounded-xl py-1.5 transition-colors ${
               active ? "text-brand-green-dark dark:text-brand-green" : "text-brand-gray-light dark:text-white/40"
             }`}
@@ -76,7 +79,7 @@ export default function MobileNav() {
         className={`relative flex flex-1 flex-col items-center justify-center gap-1 rounded-xl py-1.5 transition-colors ${
           pathname.startsWith("/noticeboard") ? "text-brand-green-dark dark:text-brand-green" : "text-brand-gray-light dark:text-white/40"
         }`}
-        aria-label="Noticeboard"
+        aria-label={t("nav.noticeboard")}
       >
         <span className="relative">
           <BellIcon />

@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "./Button";
+import { useLanguage } from "./LanguageContext";
 
 type Role = "student" | "admin";
 
 export default function LoginForm({ onCreateAccount }: { onCreateAccount?: () => void } = {}) {
   const router = useRouter();
   const [role, setRole] = useState<Role>("student");
+  const { t } = useLanguage();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -19,7 +21,7 @@ export default function LoginForm({ onCreateAccount }: { onCreateAccount?: () =>
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-semibold text-brand-black dark:text-white">I am signing in as</span>
+        <span className="text-sm font-semibold text-brand-black dark:text-white">{t("login.as")}</span>
         <div className="flex w-fit flex-wrap gap-2 rounded-2xl bg-brand-green-tint p-1.5 dark:bg-white/5">
           <button
             type="button"
@@ -41,7 +43,7 @@ export default function LoginForm({ onCreateAccount }: { onCreateAccount?: () =>
             >
               {role === "student" ? <span className="h-2 w-2 rounded-full bg-brand-green" /> : null}
             </span>
-            Student
+            {t("login.student")}
           </button>
           <button
             type="button"
@@ -63,14 +65,14 @@ export default function LoginForm({ onCreateAccount }: { onCreateAccount?: () =>
             >
               {role === "admin" ? <span className="h-2 w-2 rounded-full bg-brand-green" /> : null}
             </span>
-            Admin or Partner
+            {t("login.admin")}
           </button>
         </div>
       </div>
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="li-phone" className="text-sm font-semibold text-brand-black dark:text-white">
-          Phone Number or Email
+          {t("login.id")}
         </label>
         <input
           key={role}
@@ -83,23 +85,23 @@ export default function LoginForm({ onCreateAccount }: { onCreateAccount?: () =>
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="li-otp" className="text-sm font-semibold text-brand-black dark:text-white">
-          {role === "student" ? "One-time code" : "Password"}
+          {t(role === "student" ? "login.otp" : "login.password")}
         </label>
         <input
           id="li-otp"
           type={role === "student" ? "text" : "password"}
-          placeholder={role === "student" ? "Sent by SMS" : "••••••••"}
+          placeholder={role === "student" ? t("login.sentBySms") : "••••••••"}
           className="h-[52px] rounded-2xl border-[1.5px] border-brand-line bg-transparent px-[18px] py-3.5 text-[15px] text-brand-black outline-none focus:border-brand-green dark:border-white/15 dark:text-white"
         />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" variant="primary" className="w-fit">
-          Sign in
+          {t("nav.signIn")}
         </Button>
         {onCreateAccount ? (
           <Button type="button" variant="secondary" className="w-fit" onClick={onCreateAccount}>
-            Create an account
+            {t("login.createAccount")}
           </Button>
         ) : null}
       </div>

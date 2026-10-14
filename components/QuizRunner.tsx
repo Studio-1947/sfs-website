@@ -6,8 +6,6 @@ import { QuizQuestion } from "@/lib/data";
 import { useLanguage } from "./LanguageContext";
 import { ArrowRight, CheckIcon } from "./learn/icons";
 
-const LETTERS = ["A", "B", "C", "D", "E"];
-
 export default function QuizRunner({
   questions,
   courseSlug,
@@ -24,6 +22,7 @@ export default function QuizRunner({
 }) {
   const router = useRouter();
   const { t } = useLanguage();
+  const letters = t("quiz.letters").split(",");
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
@@ -57,9 +56,9 @@ export default function QuizRunner({
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between text-sm font-semibold">
           <span className="text-brand-black dark:text-white">
-            Question {index + 1} <span className="text-brand-gray-light dark:text-white/35">of {questions.length}</span>
+            {t("quiz.question", { n: index + 1 })} <span className="text-brand-gray-light dark:text-white/35">{t("quiz.of", { total: questions.length })}</span>
           </span>
-          <span className="text-brand-gray dark:text-white/55">{results.filter(Boolean).length} correct so far</span>
+          <span className="text-brand-gray dark:text-white/55">{t("quiz.correctSoFar", { n: results.filter(Boolean).length })}</span>
         </div>
         <div className="flex gap-1.5" role="progressbar" aria-valuemin={1} aria-valuemax={questions.length} aria-valuenow={index + 1}>
           {questions.map((_, i) => {
@@ -80,7 +79,7 @@ export default function QuizRunner({
         {question.question}
       </h1>
 
-      <div className="flex flex-col gap-3" role="radiogroup" aria-label="Answer options">
+      <div className="flex flex-col gap-3" role="radiogroup" aria-label={t("quiz.optionsAria")}>
         {question.options.map((option, i) => {
           const selected = picked === i;
           const isRight = checked && i === question.correctIndex;
@@ -110,7 +109,7 @@ export default function QuizRunner({
               className={`flex items-center gap-4 rounded-2xl border-2 px-4 py-4 text-left text-base font-semibold text-brand-black transition-colors dark:text-white sm:px-5 ${cls}`}
             >
               <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-sm font-semibold ${letterCls}`}>
-                {isRight ? <CheckIcon /> : LETTERS[i]}
+                {isRight ? <CheckIcon /> : letters[i]}
               </span>
               <span className="flex-1">{option}</span>
             </button>
@@ -127,9 +126,7 @@ export default function QuizRunner({
               : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300"
           }`}
         >
-          {isCorrect
-            ? "Correct — nicely done."
-            : `Not quite. The right answer is “${question.options[question.correctIndex]}”.`}
+          {isCorrect ? t("quiz.correct") : t("quiz.wrong", { answer: question.options[question.correctIndex] })}
         </div>
       ) : null}
 
@@ -141,7 +138,7 @@ export default function QuizRunner({
           onClick={checked ? handleNext : handleCheck}
           className="group flex min-h-[56px] w-full items-center justify-between gap-3 rounded-full bg-brand-green py-1.5 pl-6 pr-1.5 text-[15px] font-semibold text-white shadow-lg shadow-black/10 transition-colors hover:bg-brand-green-dark disabled:cursor-not-allowed disabled:opacity-40 lg:shadow-none"
         >
-          {checked ? (isLast ? t("quiz.seeResult") : t("quiz.next")) : "Check answer"}
+          {checked ? (isLast ? t("quiz.seeResult") : t("quiz.next")) : t("quiz.check")}
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-brand-green">
             <ArrowRight />
           </span>

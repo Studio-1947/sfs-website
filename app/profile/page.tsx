@@ -1,10 +1,16 @@
+"use client";
+
 import LearnerNav from "@/components/LearnerNav";
 import LearnerSidebar from "@/components/LearnerSidebar";
 import IconStatCard from "@/components/IconStatCard";
 import ProfileForm from "@/components/ProfileForm";
-import { course, courseCompletedCount, courses, isCourseComplete, learner } from "@/lib/data";
+import { useLanguage } from "@/components/LanguageContext";
+import { courseCompletedCount, courses, isCourseComplete, learner } from "@/lib/data";
+import { localizeCourseMeta } from "@/lib/localize";
 
 export default function ProfilePage() {
+  const { t, n, lang } = useLanguage();
+  const course = localizeCourseMeta(lang);
   const complete = isCourseComplete();
   const completedCount = courseCompletedCount();
   const pct = Math.round((completedCount / courses.length) * 100);
@@ -19,13 +25,13 @@ export default function ProfilePage() {
         <main className="flex flex-col gap-8 px-4 py-6 pb-24 sm:px-8 sm:py-10 lg:px-16 lg:pb-10">
           <div className="rounded-3xl border border-brand-green/25 bg-brand-green-tint/80 p-4 dark:border-brand-green/20 dark:bg-brand-green/10 sm:p-6">
             <p className="mb-3.5 text-xs font-bold uppercase tracking-wider text-brand-green-darker dark:text-brand-green sm:text-sm">
-              Your learning stats
+              {t("prof.stats")}
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-              <IconStatCard icon="certificate" label="Certificates earned" value={String(learner.certificatesEarned)} sub="of 1 course" />
-              <IconStatCard icon="streak" label="Learning streak" value={`${learner.streakDays} days`} sub="Keep it going" />
-              <IconStatCard icon="points" label="Points" value={String(learner.points)} sub={`Rank: ${learner.rank}`} />
-              <IconStatCard icon="progress" label="Overall progress" value={`${learner.overallProgress}%`} />
+              <IconStatCard icon="certificate" label={t("dashboard.certificatesEarned")} value={n(learner.certificatesEarned)} sub={t("prof.ofOneCourse")} />
+              <IconStatCard icon="streak" label={t("dashboard.learningStreak")} value={t("common.days", { n: learner.streakDays })} sub={t("dashboard.keepItGoing")} />
+              <IconStatCard icon="points" label={t("dashboard.points")} value={n(learner.points)} sub={t("prof.rank", { rank: t("learner.rank") })} />
+              <IconStatCard icon="progress" label={t("dashboard.overallProgress")} value={n(`${learner.overallProgress}%`)} />
             </div>
           </div>
 
@@ -33,7 +39,7 @@ export default function ProfilePage() {
 
           <div className="flex flex-col gap-3.5 pb-6">
             <p className="text-xs font-semibold uppercase tracking-wider text-brand-gray-light dark:text-white/40 sm:text-sm">
-              Your certificate
+              {t("prof.yourCertificate")}
             </p>
             <a
               href="/certificate"
@@ -49,7 +55,7 @@ export default function ProfilePage() {
                     <div className="h-full rounded-full bg-brand-green transition-all duration-500" style={{ width: `${pct}%` }} />
                   </div>
                   <span className="text-xs font-semibold text-brand-gray-light dark:text-white/40">
-                    {completedCount} of {courses.length} videos
+                    {t("prof.videosOf", { done: completedCount, total: courses.length })}
                   </span>
                 </div>
               </div>
@@ -60,7 +66,7 @@ export default function ProfilePage() {
                     : "bg-brand-line/70 text-brand-black dark:bg-white/10 dark:text-white group-hover:bg-brand-green group-hover:text-white"
                 }`}
               >
-                {complete ? "Certified — view certificate →" : "View progress →"}
+                {t(complete ? "prof.certified" : "prof.viewProgress")}
               </span>
             </a>
           </div>

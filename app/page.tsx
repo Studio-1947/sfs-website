@@ -30,7 +30,7 @@ function WhatsappIcon({ className = "h-5 w-5" }: { className?: string }) {
 }
 
 export default function LandingPage() {
-  const { t } = useLanguage();
+  const { t, n } = useLanguage();
   const [showSignup, setShowSignup] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [focusLogin, setFocusLogin] = useState(false);
@@ -70,7 +70,7 @@ export default function LandingPage() {
                   href="tel:+918447841831"
                   className="group inline-flex h-11 flex-shrink-0 items-center justify-between gap-3 rounded-full bg-brand-green pl-6 pr-1 text-[15px] font-semibold text-white transition-colors hover:bg-brand-green-dark"
                 >
-                  <span>Support</span>
+                  <span>{t("land.support")}</span>
                   <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-brand-green">
                     <PhoneIcon />
                   </span>
@@ -79,7 +79,7 @@ export default function LandingPage() {
                   href="https://wa.me/918447841831"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Chat on WhatsApp"
+                  aria-label={t("land.whatsapp")}
                   className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-white/30 text-white transition-colors hover:border-brand-green hover:text-brand-green"
                 >
                   <WhatsappIcon />
@@ -92,7 +92,7 @@ export default function LandingPage() {
               href="tel:+918447841831"
               className="group inline-flex h-9 flex-shrink-0 items-center justify-between gap-2 rounded-full bg-brand-green pl-4 pr-1 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark"
             >
-              <span>Support</span>
+              <span>{t("land.support")}</span>
               <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-white text-brand-green">
                 <PhoneIcon />
               </span>
@@ -101,7 +101,7 @@ export default function LandingPage() {
               href="https://wa.me/918447841831"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Chat on WhatsApp"
+              aria-label={t("land.whatsapp")}
               className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-white/30 text-white transition-colors hover:border-brand-green hover:text-brand-green"
             >
               <WhatsappIcon className="h-4 w-4" />
@@ -130,7 +130,7 @@ export default function LandingPage() {
                 onClick={() => setShowVideo(true)}
                 className="group inline-flex items-center justify-between gap-3 rounded-full border border-white/50 bg-white/10 py-1.5 pr-1.5 text-[15px] font-semibold text-white backdrop-blur-sm transition-colors hover:border-brand-green hover:text-brand-green"
               >
-                <span className="pl-6">Play a learning video</span>
+                <span className="pl-6">{t("land.playVideo")}</span>
                 <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-brand-green">
                   <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
                     <path d="M8 6.5v11l9-5.5-9-5.5Z" fill="currentColor" />
@@ -142,7 +142,7 @@ export default function LandingPage() {
                 onClick={handleStartToday}
                 className="group inline-flex items-center justify-between gap-3 rounded-full bg-brand-green py-1.5 pr-1.5 text-[15px] font-semibold text-white transition-colors hover:bg-brand-green-dark"
               >
-                <span className="pl-6">Start today</span>
+                <span className="pl-6">{t("land.startToday")}</span>
                 <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-brand-green">
                   <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
                     <path
@@ -170,9 +170,9 @@ export default function LandingPage() {
               }`}
             >
               <div className="mb-6">
-                <h2 className="text-2xl font-semibold text-brand-black dark:text-white">Welcome back</h2>
+                <h2 className="text-2xl font-semibold text-brand-black dark:text-white">{t("dashboard.welcome")}</h2>
                 <p className="mt-1 text-sm text-brand-gray dark:text-white/55">
-                  Sign in to see your progress and certificates.
+                  {t("land.signInCopy")}
                 </p>
               </div>
 
@@ -187,7 +187,7 @@ export default function LandingPage() {
           }`}
         >
           <span className="text-[10px] text-white/60">
-            &copy; 2026{" "}
+            &copy; {n(2026)}{" "}
             <a
               href="https://www.schoolforskills.in/"
               target="_blank"
@@ -198,7 +198,7 @@ export default function LandingPage() {
             </a>
           </span>
           <span className="text-[10px] text-white/60">
-            Designed and Developed by{" "}
+            {t("land.designedBy")}{" "}
             <a
               href="https://www.1947.io"
               target="_blank"
@@ -225,7 +225,7 @@ export default function LandingPage() {
             <button
               type="button"
               onClick={() => setShowVideo(false)}
-              aria-label="Close"
+              aria-label={t("common.close")}
               className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
             >
               <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">

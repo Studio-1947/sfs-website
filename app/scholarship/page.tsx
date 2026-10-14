@@ -3,7 +3,9 @@
 import { useState } from "react";
 import LearnerNav from "@/components/LearnerNav";
 import LearnerSidebar from "@/components/LearnerSidebar";
-import { placementInfo, placementStories, scholarshipInfo } from "@/lib/data";
+import { useLanguage } from "@/components/LanguageContext";
+import { placementInfo as basePlacement, placementStories } from "@/lib/data";
+import { localizePlacement, localizeScholarship } from "@/lib/localize";
 
 const hospitalColors = [
   "bg-brand-green-tint text-brand-green-darker dark:bg-brand-green/15 dark:text-brand-green",
@@ -155,6 +157,7 @@ function DeskIcon() {
   );
 }
 
+// Keyed by the English labels in lib/data.ts; looked up by index so translated labels still match.
 const roleIcons: Record<string, () => JSX.Element> = {
   EMT: AmbulanceIcon,
   "Operation Theatre Assistant": OperationIcon,
@@ -181,27 +184,29 @@ function initials(name: string) {
 }
 
 const tabs = [
-  { key: "scholarship" as const, label: "Scholarship" },
-  { key: "placement" as const, label: "Placement network" },
+  { key: "scholarship" as const, labelKey: "sch.tab.scholarship" },
+  { key: "placement" as const, labelKey: "sch.tab.placement" },
 ];
 
 export default function ScholarshipPlacementPage() {
   const [tab, setTab] = useState<"scholarship" | "placement">("scholarship");
+  const { t, n, lang } = useLanguage();
+  const scholarshipInfo = localizeScholarship(lang);
+  const placementInfo = localizePlacement(lang);
 
   return (
     <div className="flex">
       <LearnerSidebar active="scholarship" />
       <div className="min-w-0 flex-1">
-        <LearnerNav active="scholarship" backHref="/dashboard" backLabel="Back to dashboard" hasSidebar />
+        <LearnerNav active="scholarship" backHref="/dashboard" backLabel={t("lesson.backToDashboard")} hasSidebar />
 
         <main className="flex flex-col gap-8 px-4 py-6 pb-24 sm:px-8 sm:py-10 lg:px-16 lg:pb-10">
           <div>
             <h1 className="text-2xl font-semibold text-brand-black dark:text-white sm:text-[32px]">
-              Scope
+              {t("nav.scholarship")}
             </h1>
             <p className="max-w-2xl text-base text-brand-gray dark:text-white/55">
-              Financial support to start your course, and a hospital placement network to help you finish it with a
-              job.
+              {t("sch.intro")}
             </p>
           </div>
 
@@ -217,7 +222,7 @@ export default function ScholarshipPlacementPage() {
                     : "text-brand-gray hover:text-brand-black dark:text-white/70 dark:hover:text-white"
                 }`}
               >
-                {tb.label}
+                {t(tb.labelKey)}
               </button>
             ))}
           </div>
@@ -235,7 +240,7 @@ export default function ScholarshipPlacementPage() {
 
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <div className="flex flex-col gap-4 rounded-2xl bg-white p-6 dark:bg-brand-ink">
-                  <h3 className="text-lg font-semibold text-brand-black dark:text-white">Eligibility</h3>
+                  <h3 className="text-lg font-semibold text-brand-black dark:text-white">{t("sch.eligibility")}</h3>
                   <ul className="flex flex-col gap-2.5">
                     {scholarshipInfo.eligibility.map((item) => (
                       <li key={item} className="flex items-start gap-2.5 text-sm text-brand-gray dark:text-white/55">
@@ -247,7 +252,7 @@ export default function ScholarshipPlacementPage() {
                 </div>
 
                 <div className="flex flex-col gap-4 rounded-2xl bg-white p-6 dark:bg-brand-ink">
-                  <h3 className="text-lg font-semibold text-brand-black dark:text-white">Household income brackets</h3>
+                  <h3 className="text-lg font-semibold text-brand-black dark:text-white">{t("sch.income")}</h3>
                   <div className="flex flex-wrap gap-2">
                     {scholarshipInfo.incomeBrackets.map((bracket) => (
                       <span
@@ -263,12 +268,12 @@ export default function ScholarshipPlacementPage() {
               </div>
 
               <div className="flex flex-col gap-4 rounded-2xl bg-white p-6 dark:bg-brand-ink">
-                <h3 className="text-lg font-semibold text-brand-black dark:text-white">How to apply</h3>
+                <h3 className="text-lg font-semibold text-brand-black dark:text-white">{t("sch.howToApply")}</h3>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {scholarshipInfo.applySteps.map((step, i) => (
                     <div key={step.title} className="flex gap-3.5 rounded-xl border border-brand-line px-4 py-3.5 dark:border-white/10">
                       <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-brand-green-tint text-sm font-semibold text-brand-green-dark dark:bg-brand-green/15 dark:text-brand-green">
-                        {i + 1}
+                        {n(i + 1)}
                       </span>
                       <div className="flex flex-col gap-0.5">
                         <span className="text-[15px] font-semibold text-brand-black dark:text-white">{step.title}</span>
@@ -286,7 +291,7 @@ export default function ScholarshipPlacementPage() {
                   rel="noopener noreferrer"
                   className="group inline-flex items-center gap-3 rounded-full bg-brand-green py-1.5 pr-1.5 text-[15px] font-semibold text-white transition-colors hover:bg-brand-green-dark"
                 >
-                  <span className="pl-6">Apply on schoolforskills.in</span>
+                  <span className="pl-6">{t("sch.apply")}</span>
                   <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-brand-green">
                     <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
                       <path
@@ -309,8 +314,8 @@ export default function ScholarshipPlacementPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                {placementInfo.stats.map((stat) => {
-                  const Icon = statIcons[stat.label];
+                {placementInfo.stats.map((stat, i) => {
+                  const Icon = statIcons[basePlacement.stats[i].label];
                   return (
                     <div key={stat.label} className="flex flex-col gap-3 rounded-2xl bg-white p-5 dark:bg-brand-ink">
                       <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-green-tint text-brand-green-dark dark:bg-brand-green/15 dark:text-brand-green">
@@ -328,7 +333,7 @@ export default function ScholarshipPlacementPage() {
               </div>
 
               <div className="flex flex-col gap-4 rounded-2xl bg-white p-6 dark:bg-brand-ink">
-                <h3 className="text-lg font-semibold text-brand-black dark:text-white">Partner hospitals</h3>
+                <h3 className="text-lg font-semibold text-brand-black dark:text-white">{t("place.partnerHospitals")}</h3>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                   {placementInfo.partnerHospitals.map((h, i) => (
                     <div
@@ -345,15 +350,15 @@ export default function ScholarshipPlacementPage() {
                   ))}
                 </div>
                 <p className="text-sm text-brand-gray dark:text-white/55">
-                  Plus 20+ more hospital partners across India.
+                  {t("place.more")}
                 </p>
               </div>
 
               <div className="flex flex-col gap-4 rounded-2xl bg-white p-6 dark:bg-brand-ink">
-                <h3 className="text-lg font-semibold text-brand-black dark:text-white">Roles graduates are placed in</h3>
+                <h3 className="text-lg font-semibold text-brand-black dark:text-white">{t("place.roles")}</h3>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {placementInfo.roles.map((role) => {
-                    const Icon = roleIcons[role];
+                  {placementInfo.roles.map((role, i) => {
+                    const Icon = roleIcons[basePlacement.roles[i]];
                     return (
                       <div
                         key={role}
@@ -371,9 +376,9 @@ export default function ScholarshipPlacementPage() {
 
               <div className="flex flex-col gap-4 rounded-2xl bg-white p-6 dark:bg-brand-ink">
                 <div>
-                  <h3 className="text-lg font-semibold text-brand-black dark:text-white">Placement stories</h3>
+                  <h3 className="text-lg font-semibold text-brand-black dark:text-white">{t("place.stories")}</h3>
                   <p className="text-sm text-brand-gray dark:text-white/55">
-                    {placementStories.length} graduates placed through the network
+                    {t("place.storiesCount", { n: placementStories.length })}
                   </p>
                 </div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -417,14 +422,14 @@ export default function ScholarshipPlacementPage() {
               </div>
 
               <div className="flex flex-col gap-4 rounded-2xl bg-white p-6 dark:bg-brand-ink">
-                <h3 className="text-lg font-semibold text-brand-black dark:text-white">Success gallery</h3>
+                <h3 className="text-lg font-semibold text-brand-black dark:text-white">{t("place.gallery")}</h3>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
                   {galleryImages.map((src) => (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       key={src}
                       src={src}
-                      alt="Schools for Skills placement success"
+                      alt={t("place.galleryAlt")}
                       className="aspect-square w-full rounded-xl object-cover"
                     />
                   ))}
@@ -432,7 +437,7 @@ export default function ScholarshipPlacementPage() {
               </div>
 
               <div className="flex flex-col gap-4 rounded-2xl bg-brand-black px-6 py-5 dark:border dark:border-white/10 dark:bg-brand-ink sm:px-8 sm:py-6">
-                <h3 className="text-lg font-semibold text-white">Why our placement network works</h3>
+                <h3 className="text-lg font-semibold text-white">{t("place.why")}</h3>
                 <ul className="flex flex-col gap-2.5">
                   {placementInfo.highlights.map((item) => (
                     <li key={item} className="flex items-start gap-2.5 text-sm text-white/70">
@@ -450,7 +455,7 @@ export default function ScholarshipPlacementPage() {
                   rel="noopener noreferrer"
                   className="group inline-flex items-center gap-3 rounded-full bg-brand-green py-1.5 pr-1.5 text-[15px] font-semibold text-white transition-colors hover:bg-brand-green-dark"
                 >
-                  <span className="pl-6">See placement stories on schoolforskills.in</span>
+                  <span className="pl-6">{t("place.seeStories")}</span>
                   <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-brand-green">
                     <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
                       <path

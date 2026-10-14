@@ -2,17 +2,19 @@
 
 import { useState } from "react";
 import ModalShell from "./ModalShell";
+import { Field, SuccessState, btnPrimary, btnSmall, inputClass } from "./admin/ui";
+import { PlusIcon, UploadIcon, VideoIcon } from "./admin/icons";
 import { courseGroups } from "@/lib/data";
-
-const fieldClass =
-  "h-11 rounded-xl border-[1.5px] border-brand-line bg-transparent px-3.5 text-sm text-brand-black outline-none focus:border-brand-green dark:border-white/15 dark:text-white";
 
 export default function UploadVideoButton({
   defaultGroup,
   compact = false,
+  trigger,
 }: {
   defaultGroup?: string;
   compact?: boolean;
+  /** Render your own opener (e.g. a big action tile). Gets a function that opens the form. */
+  trigger?: (open: () => void) => React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -36,89 +38,66 @@ export default function UploadVideoButton({
 
   return (
     <>
-      {compact ? (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-brand-line px-3.5 py-1.5 text-xs font-semibold text-brand-gray transition-colors hover:border-brand-green hover:text-brand-green-dark dark:border-white/15 dark:text-white/70 dark:hover:text-brand-green"
-        >
-          <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Add lesson
+      {trigger ? (
+        trigger(() => setOpen(true))
+      ) : compact ? (
+        <button type="button" onClick={() => setOpen(true)} className={btnSmall}>
+          <PlusIcon className="h-4 w-4" />
+          Add a lesson here
         </button>
       ) : (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="flex flex-shrink-0 items-center gap-3 whitespace-nowrap rounded-full bg-brand-green py-1.5 pl-6 pr-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark"
-        >
-          Upload lesson video
-          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-brand-green">
-            <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
-              <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
+        <button type="button" onClick={() => setOpen(true)} className={btnPrimary}>
+          <UploadIcon className="h-5 w-5" />
+          Upload a lesson video
         </button>
       )}
 
       {open ? (
-        <ModalShell title="Upload lesson video" onClose={close}>
+        <ModalShell
+          title="Upload a lesson video"
+          description="Fill in the 4 boxes below. Students will see the new lesson after it has been checked."
+          onClose={close}
+        >
           {submitted ? (
-            <div className="flex flex-col items-center gap-3 py-4 text-center">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-green-tint text-brand-green-dark dark:bg-brand-green/15 dark:text-brand-green">
-                <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
-                  <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </span>
-              <p className="text-sm font-semibold text-brand-black dark:text-white">
-                &ldquo;{title || "Untitled lesson"}&rdquo; was queued for upload.
-              </p>
-              <button
-                type="button"
-                onClick={close}
-                className="mt-1 rounded-full bg-brand-green px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark"
-              >
-                Done
-              </button>
-            </div>
+            <SuccessState
+              title="Video sent!"
+              body={`“${title || "Your lesson"}” is uploading. It will show up in Lessons once it is ready.`}
+              onDone={close}
+              doneLabel="Great, close this"
+            />
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
-              <input
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Lesson title"
-                className={fieldClass}
-              />
-              <select value={group} onChange={(e) => setGroup(e.target.value)} className={fieldClass}>
-                {courseGroups.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
-                ))}
-              </select>
-              <input
-                required
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                placeholder="Duration (e.g. 5 min)"
-                className={fieldClass}
-              />
-              <label className={`${fieldClass} flex cursor-pointer items-center text-brand-gray dark:text-white/55`}>
-                {file ? file.name : "Choose video file"}
-                <input
-                  type="file"
-                  accept="video/*"
-                  className="hidden"
-                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                />
-              </label>
-              <button
-                type="submit"
-                className="mt-1 rounded-full bg-brand-green py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark"
-              >
-                Upload
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              <Field label="1. What is the lesson called?" htmlFor="up-title" help="Use a short, clear name, like “How to clean a wound”.">
+                <input id="up-title" required value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} />
+              </Field>
+              <Field label="2. Which topic does it belong to?" htmlFor="up-group" help="Topics group similar lessons together.">
+                <select id="up-group" value={group} onChange={(e) => setGroup(e.target.value)} className={inputClass}>
+                  {courseGroups.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="3. How long is the video?" htmlFor="up-duration" help="In minutes. For example: 5 min.">
+                <input id="up-duration" required value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="5 min" className={inputClass} />
+              </Field>
+              <Field label="4. Choose the video file" htmlFor="up-file">
+                <label
+                  htmlFor="up-file"
+                  className="flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-brand-line px-4 py-6 text-center transition-colors hover:border-brand-green dark:border-white/15"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-green-tint text-brand-green-dark dark:bg-brand-green/15 dark:text-brand-green">
+                    <VideoIcon className="h-6 w-6" />
+                  </span>
+                  <span className="text-[15px] font-semibold text-brand-black dark:text-white">{file ? file.name : "Tap here to pick a video"}</span>
+                  <span className="text-xs text-brand-gray dark:text-white/50">{file ? "Tap again to pick a different one" : "MP4 works best"}</span>
+                  <input id="up-file" type="file" accept="video/*" className="sr-only" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+                </label>
+              </Field>
+              <button type="submit" className={`${btnPrimary} w-full`}>
+                <UploadIcon className="h-5 w-5" />
+                Upload video
               </button>
             </form>
           )}

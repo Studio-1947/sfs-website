@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import StatIcon from "./StatIcon";
+import { useLanguage } from "./LanguageContext";
 
 export default function IconStatCard({
   icon,
@@ -14,6 +17,7 @@ export default function IconStatCard({
   sub?: string;
   href?: string;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="relative flex flex-1 flex-col justify-between rounded-2xl border border-brand-line/80 bg-white p-4 shadow-sm transition-all hover:border-brand-green/40 hover:shadow-md dark:border-white/10 dark:bg-brand-ink sm:p-5">
       <div>
@@ -44,7 +48,7 @@ export default function IconStatCard({
             href={href}
             className="inline-flex w-fit items-center gap-1.5 rounded-full bg-brand-green px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-green-dark sm:text-sm"
           >
-            Explore
+            {t("stat.explore")}
             <svg viewBox="0 0 24 24" fill="none" className="h-3 w-3" aria-hidden="true">
               <path
                 d="M7 17L17 7M17 7H9M17 7V15"

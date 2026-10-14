@@ -5,6 +5,7 @@ import Logo from "./Logo";
 import NavControls from "./NavControls";
 import LearnerProfileMenu from "./LearnerProfileMenu";
 import MobileNav from "./MobileNav";
+import { useLanguage } from "./LanguageContext";
 import { notices } from "@/lib/data";
 
 function BellIcon() {
@@ -34,6 +35,7 @@ export default function LearnerNav({
   dimmed?: boolean;
   hasSidebar?: boolean;
 }) {
+  const { t } = useLanguage();
   return (
     <>
       <header
@@ -49,7 +51,7 @@ export default function LearnerNav({
             <Link
               href={backHref}
               className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-brand-line text-brand-gray transition-colors hover:border-brand-green hover:text-brand-black dark:border-white/15 dark:text-white/55 dark:hover:border-brand-green dark:hover:text-white sm:h-auto sm:w-auto sm:justify-start sm:rounded-none sm:border-0 sm:gap-1.5"
-              aria-label={backLabel ?? "Go back"}
+              aria-label={backLabel ?? t("common.goBack")}
             >
               <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 flex-shrink-0" aria-hidden="true">
                 <path d="M19 12H5m0 0l6 6m-6-6l6-6" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
@@ -64,7 +66,7 @@ export default function LearnerNav({
           <Link
             href="/noticeboard"
             className="relative hidden h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-brand-black transition-colors hover:bg-brand-black/5 dark:text-white dark:hover:bg-white/10 lg:flex"
-            aria-label="Noticeboard"
+            aria-label={t("nav.noticeboard")}
           >
             <BellIcon />
             {notices.some((n) => n.unread) ? (

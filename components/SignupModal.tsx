@@ -3,12 +3,16 @@
 import { useEffect } from "react";
 import LanguagePicker from "./LanguagePicker";
 import { LinkButton } from "./Button";
+import { useLanguage } from "./LanguageContext";
 
 const fieldClass =
   "h-[48px] rounded-xl border-[1.5px] border-brand-line bg-transparent px-4 text-[15px] text-brand-black outline-none focus:border-brand-green dark:border-white/15 dark:text-white dark:[color-scheme:dark]";
 const labelClass = "text-sm font-semibold text-brand-black dark:text-white";
 
+const states = ["West Bengal", "Assam", "Madhya Pradesh", "Maharashtra", "Uttar Pradesh", "Meghalaya"];
+
 export default function SignupModal({ onClose }: { onClose: () => void }) {
+  const { t } = useLanguage();
   useEffect(() => {
     document.body.style.overflow = "hidden";
     function onKey(e: KeyboardEvent) {
@@ -27,14 +31,14 @@ export default function SignupModal({ onClose }: { onClose: () => void }) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-brand-black dark:text-white sm:text-[28px]">
-              Create your account
+              {t("signup.title")}
             </h1>
-            <p className="mt-1 text-sm text-brand-gray dark:text-white/55">A few details, then you&rsquo;re learning.</p>
+            <p className="mt-1 text-sm text-brand-gray dark:text-white/55">{t("signup.sub")}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("common.close")}
             className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-brand-line text-brand-gray transition-colors hover:border-brand-green hover:text-brand-green dark:border-white/15 dark:text-white/70"
           >
             <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
@@ -47,84 +51,83 @@ export default function SignupModal({ onClose }: { onClose: () => void }) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="sm-name" className={labelClass}>
-                Full name
+                {t("pf.fullName")}
               </label>
-              <input id="sm-name" name="name" type="text" placeholder="e.g. Priya Rai" className={fieldClass} />
+              <input id="sm-name" name="name" type="text" placeholder={t("pf.namePh")} className={fieldClass} />
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="sm-dob" className={labelClass}>
-                Date of birth
+                {t("pf.dob")}
               </label>
               <input id="sm-dob" name="dob" type="date" className={fieldClass} />
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="sm-phone" className={labelClass}>
-                Phone number
+                {t("pf.phone")}
               </label>
               <input id="sm-phone" name="phone" type="tel" placeholder="+91 00000 00000" className={fieldClass} />
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="sm-email" className={labelClass}>
-                Email
+                {t("pf.email")}
               </label>
               <input id="sm-email" name="email" type="email" placeholder="you@example.com" className={fieldClass} />
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="sm-guardian" className={labelClass}>
-                Guardian name
+                {t("pf.guardian")}
               </label>
-              <input id="sm-guardian" name="guardian" type="text" placeholder="e.g. Anita Rai" className={fieldClass} />
+              <input id="sm-guardian" name="guardian" type="text" placeholder={t("pf.guardianPh")} className={fieldClass} />
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="sm-state" className={labelClass}>
-                State
+                {t("signup.state")}
               </label>
               <select id="sm-state" name="state" defaultValue="" className={fieldClass}>
                 <option value="" disabled>
-                  Select your state
+                  {t("signup.selectState")}
                 </option>
-                <option value="West Bengal">West Bengal</option>
-                <option value="Assam">Assam</option>
-                <option value="Madhya Pradesh">Madhya Pradesh</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="Uttar Pradesh">Uttar Pradesh</option>
-                <option value="Meghalaya">Meghalaya</option>
+                {states.map((s) => (
+                  <option key={s} value={s}>
+                    {t(`state.${s}`)}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="flex flex-col gap-1.5 sm:col-span-2">
               <label htmlFor="sm-address" className={labelClass}>
-                Address
+                {t("pf.address")}
               </label>
-              <input id="sm-address" name="address" type="text" placeholder="Village / town, district" className={fieldClass} />
+              <input id="sm-address" name="address" type="text" placeholder={t("signup.addressPh")} className={fieldClass} />
             </div>
             <div className="flex flex-col gap-1.5 sm:col-span-2">
               <label htmlFor="sm-school" className={labelClass}>
-                School or community group
+                {t("pf.school")}
               </label>
               <input
                 id="sm-school"
                 name="school"
                 type="text"
-                placeholder="e.g. Schools for Skills, Kolkata"
+                placeholder={t("pf.schoolPh")}
                 className={fieldClass}
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
-            <span className={labelClass}>Preferred language</span>
+            <span className={labelClass}>{t("lang.preferred")}</span>
             <LanguagePicker size="sm" />
           </div>
 
           <LinkButton href="/dashboard" variant="primary" className="mt-1 w-full">
-            Continue
+            {t("signup.continue")}
           </LinkButton>
         </form>
 
         <p className="text-center text-sm text-brand-gray dark:text-white/55">
-          Already have an account?{" "}
+          {t("signup.already")}{" "}
           <button type="button" onClick={onClose} className="font-semibold text-brand-green-dark dark:text-brand-green">
-            Sign in
+            {t("nav.signIn")}
           </button>
         </p>
       </div>

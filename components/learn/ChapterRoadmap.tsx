@@ -1,13 +1,18 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { ChapterState, courseGroups } from "@/lib/data";
+import { localizeCourse, localizeGroup } from "@/lib/localize";
+import { useLanguage } from "@/components/LanguageContext";
 import { ArrowRight, ClockIcon, PlayIcon, QuizIcon, StepDot } from "./icons";
 
-function stepLabel(kind: "video" | "quiz", s: ChapterState) {
+function stepLabel(kind: "video" | "quiz", s: ChapterState, t: ReturnType<typeof useLanguage>["t"]) {
   const st = kind === "video" ? s.video : s.quiz;
-  if (st === "done") return kind === "video" ? "Watched" : "Passed";
-  if (st === "current") return kind === "video" ? (s.chapter.progress > 0 ? `${s.chapter.progress}% watched` : "Start") : "Ready";
-  return kind === "video" ? "Not started" : "After video";
+  if (st === "done") return t(kind === "video" ? "road.watched" : "road.passed");
+  if (st === "current")
+    return kind === "video" ? (s.chapter.progress > 0 ? t("road.pctWatched", { n: s.chapter.progress }) : t("road.start")) : t("road.ready");
+  return t(kind === "video" ? "road.notStarted" : "road.afterVideo");
 }
 
 /** Vertical roadmap: groups -> chapters -> [video] [quiz]. */
@@ -18,6 +23,7 @@ export default function ChapterRoadmap({
   states: ChapterState[];
   activeSlug: string;
 }) {
+  const { t, n, lang } = useLanguage();
   return (
     <div className="flex flex-col gap-10">
       {courseGroups.map((group) => {
@@ -27,15 +33,16 @@ export default function ChapterRoadmap({
         return (
           <section key={group} className="flex flex-col gap-4">
             <div className="flex items-baseline justify-between gap-3">
-              <h3 className="text-lg font-semibold text-brand-black dark:text-white">{group}</h3>
+              <h3 className="text-lg font-semibold text-brand-black dark:text-white">{localizeGroup(group, lang)}</h3>
               <span className="text-sm font-semibold text-brand-gray-light dark:text-white/40">
-                {done}/{items.length} chapters
+                {t("road.chaptersDone", { done, total: items.length })}
               </span>
             </div>
 
             <ol className="relative flex flex-col gap-4">
               {items.map((s, idx) => {
                 const isActive = s.chapter.slug === activeSlug;
+                const chapter = localizeCourse(s.chapter, lang);
                 const lastInGroup = idx === items.length - 1;
                 const marker =
                   s.state === "completed" ? "done" : s.state === "in-progress" ? "current" : "todo";
@@ -44,7 +51,7 @@ export default function ChapterRoadmap({
                     {/* rail */}
                     <div className="flex flex-col items-center">
                       <StepDot state={marker} size="h-9 w-9">
-                        <span className="text-sm font-semibold">{s.number}</span>
+                        <span className="text-sm font-semibold">{n(s.number)}</span>
                       </StepDot>
                       {!lastInGroup ? (
                         <span
@@ -66,7 +73,7 @@ export default function ChapterRoadmap({
                       <Link
                         href={`/lesson/${s.chapter.slug}`}
                         className="relative block aspect-video w-full flex-shrink-0 overflow-hidden bg-brand-black md:aspect-auto md:w-56"
-                        aria-label={`Watch ${s.chapter.title}`}
+                        aria-label={t("road.watchAria", { title: chapter.title })}
                       >
                         <Image
                           src={s.chapter.thumbImage}
@@ -89,13 +96,13 @@ export default function ChapterRoadmap({
                       <div className="flex min-w-0 flex-1 flex-col gap-4 p-5">
                         <div className="flex flex-col gap-1">
                           <span className="text-xs font-semibold uppercase tracking-wide text-brand-gray-light dark:text-white/35">
-                            Chapter {s.number}
+                            {t("common.chapter", { n: s.number })}
                           </span>
                           <span className="text-lg font-semibold leading-snug text-brand-black dark:text-white">
-                            {s.chapter.title}
+                            {chapter.title}
                           </span>
                           <span className="line-clamp-2 text-sm leading-relaxed text-brand-gray dark:text-white/55">
-                            {s.chapter.description}
+                            {chapter.description}
                           </span>
                         </div>
 
@@ -109,9 +116,9 @@ export default function ChapterRoadmap({
                               <PlayIcon className="h-3.5 w-3.5" />
                             </StepDot>
                             <span className="flex min-w-0 flex-col leading-tight">
-                              <span className="text-sm font-semibold text-brand-black dark:text-white">Video</span>
+                              <span className="text-sm font-semibold text-brand-black dark:text-white">{t("common.video")}</span>
                               <span className="flex items-center gap-1.5 text-xs text-brand-gray dark:text-white/50">
-                                <ClockIcon className="h-3 w-3" /> {s.chapter.duration} &middot; {stepLabel("video", s)}
+                                <ClockIcon className="h-3 w-3" /> {chapter.duration} &middot; {stepLabel("video", s, t)}
                               </span>
                             </span>
                           </Link>
@@ -123,9 +130,9 @@ export default function ChapterRoadmap({
                               <QuizIcon className="h-4 w-4" />
                             </StepDot>
                             <span className="flex min-w-0 flex-col leading-tight">
-                              <span className="text-sm font-semibold text-brand-black dark:text-white">Quiz</span>
+                              <span className="text-sm font-semibold text-brand-black dark:text-white">{t("common.quiz")}</span>
                               <span className="text-xs text-brand-gray dark:text-white/50">
-                                {s.chapter.quizQuestions.length} questions &middot; {stepLabel("quiz", s)}
+                                {t("common.questions", { n: s.chapter.quizQuestions.length })} &middot; {stepLabel("quiz", s, t)}
                               </span>
                             </span>
                           </Link>
@@ -136,7 +143,7 @@ export default function ChapterRoadmap({
                             href={`/lesson/${s.chapter.slug}`}
                             className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-brand-green-dark hover:underline dark:text-brand-green"
                           >
-                            Continue this chapter <ArrowRight className="h-4 w-4" />
+                            {t("road.continue")} <ArrowRight className="h-4 w-4" />
                           </Link>
                         ) : null}
                       </div>

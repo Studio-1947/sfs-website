@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import ModalShell from "./ModalShell";
+import { Field, SuccessState, btnPrimary, btnSecondary, inputClass } from "./admin/ui";
+import { PlusIcon } from "./admin/icons";
 
-const fieldClass =
-  "h-11 rounded-xl border-[1.5px] border-brand-line bg-transparent px-3.5 text-sm text-brand-black outline-none focus:border-brand-green dark:border-white/15 dark:text-white";
-
+/** Creates a new topic (a group of lessons). Called "curriculum" in older parts of the code. */
 export default function NewCurriculumButton() {
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -24,51 +24,28 @@ export default function NewCurriculumButton() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-brand-line px-3.5 py-2 text-sm font-semibold text-brand-gray transition-colors hover:border-brand-green hover:text-brand-green-dark dark:border-white/15 dark:text-white/70 dark:hover:text-brand-green"
-      >
-        <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
-          <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        New curriculum
+      <button type="button" onClick={() => setOpen(true)} className={btnSecondary}>
+        <PlusIcon className="h-5 w-5" />
+        Add a new topic
       </button>
 
       {open ? (
-        <ModalShell title="Create a curriculum" onClose={close}>
+        <ModalShell title="Add a new topic" description="A topic is a box that holds lessons about the same subject." onClose={close}>
           {submitted ? (
-            <div className="flex flex-col items-center gap-3 py-4 text-center">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-green-tint text-brand-green-dark dark:bg-brand-green/15 dark:text-brand-green">
-                <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
-                  <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </span>
-              <p className="text-sm font-semibold text-brand-black dark:text-white">
-                &ldquo;{name}&rdquo; curriculum was created.
-              </p>
-              <button
-                type="button"
-                onClick={close}
-                className="mt-1 rounded-full bg-brand-green px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark"
-              >
-                Done
-              </button>
-            </div>
+            <SuccessState
+              title="Topic added!"
+              body={`“${name}” is ready. Next, upload a lesson video into it.`}
+              onDone={close}
+              doneLabel="Great, close this"
+            />
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
-              <input
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Curriculum name (e.g. Maternal & Child Health)"
-                className={fieldClass}
-              />
-              <button
-                type="submit"
-                className="mt-1 rounded-full bg-brand-green py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark"
-              >
-                Create curriculum
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              <Field label="What is the topic called?" htmlFor="nc-name" help="For example: “Mother & Baby Health”.">
+                <input id="nc-name" required value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+              </Field>
+              <button type="submit" className={`${btnPrimary} w-full`}>
+                <PlusIcon className="h-5 w-5" />
+                Add topic
               </button>
             </form>
           )}

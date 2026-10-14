@@ -47,7 +47,7 @@ export default function LearnerSidebar({
 }: {
   active: "dashboard" | "lesson" | "quiz" | "certificate" | "profile" | "scholarship" | "noticeboard" | "placement";
 }) {
-  const { t } = useLanguage();
+  const { t, n } = useLanguage();
   const activeKey =
     active === "lesson" || active === "quiz" || active === "certificate"
       ? "dashboard"
@@ -56,13 +56,13 @@ export default function LearnerSidebar({
         : active;
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[260px] flex-shrink-0 flex-col gap-2 overflow-y-auto border-r border-brand-line bg-white px-5 py-7 dark:border-white/10 dark:bg-brand-ink lg:flex">
+    <aside className="sticky top-0 hidden h-screen w-[260px] flex-shrink-0 flex-col gap-2 no-scrollbar overflow-y-auto border-r border-brand-line bg-white px-5 py-7 dark:border-white/10 dark:bg-brand-ink lg:flex">
       <div className="mb-6 px-2.5">
         <Logo href="/dashboard" size={32} iconOnly />
       </div>
 
       <span className="px-3.5 pb-1 text-[11px] font-semibold uppercase tracking-wide text-brand-gray-light dark:text-white/35">
-        Menu
+        {t("side.menu")}
       </span>
       {menuItems.map((item) => {
         const Icon = item.icon;
@@ -84,38 +84,38 @@ export default function LearnerSidebar({
       })}
 
       <span className="mt-5 px-3.5 pb-1 text-[11px] font-semibold uppercase tracking-wide text-brand-gray-light dark:text-white/35">
-        Your progress
+        {t("side.progress")}
       </span>
       <div className="flex flex-col gap-3 rounded-xl bg-brand-black/5 px-3.5 py-3.5 dark:bg-white/5">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-brand-gray dark:text-white/55">Overall progress</span>
-          <span className="font-semibold text-brand-black dark:text-white">{learner.overallProgress}%</span>
+          <span className="text-brand-gray dark:text-white/55">{t("dashboard.overallProgress")}</span>
+          <span className="font-semibold text-brand-black dark:text-white">{n(`${learner.overallProgress}%`)}</span>
         </div>
         <div className="h-1.5 w-full rounded-full bg-brand-black/10 dark:bg-white/10">
           <div className="h-1.5 rounded-full bg-brand-green" style={{ width: `${learner.overallProgress}%` }} />
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-brand-gray dark:text-white/55">Learning streak</span>
-          <span className="font-semibold text-brand-black dark:text-white">{learner.streakDays} days</span>
+          <span className="text-brand-gray dark:text-white/55">{t("dashboard.learningStreak")}</span>
+          <span className="font-semibold text-brand-black dark:text-white">{t("common.days", { n: learner.streakDays })}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-brand-gray dark:text-white/55">Certificates</span>
-          <span className="font-semibold text-brand-black dark:text-white">{learner.certificatesEarned}</span>
+          <span className="text-brand-gray dark:text-white/55">{t("side.certificates")}</span>
+          <span className="font-semibold text-brand-black dark:text-white">{n(learner.certificatesEarned)}</span>
         </div>
       </div>
 
       <div className="flex-1" />
 
       <span className="px-3.5 pb-1 text-[11px] font-semibold uppercase tracking-wide text-brand-gray-light dark:text-white/35">
-        Assistance
+        {t("side.assistance")}
       </span>
       <div className="flex items-center gap-3 rounded-xl bg-brand-black/5 px-3.5 py-3 text-sm font-semibold text-brand-gray dark:bg-white/5 dark:text-white/55">
         <ClockIcon />
-        Mon&ndash;Sat, 9 AM&ndash;6 PM
+        {t("side.hours")}
       </div>
 
       <Link href="/" className="px-3.5 py-2 text-sm font-semibold text-brand-gray-light dark:text-white/50">
-        &larr; Back to home
+        {t("side.backHome")}
       </Link>
     </aside>
   );

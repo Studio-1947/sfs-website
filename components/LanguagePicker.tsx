@@ -10,11 +10,11 @@ export default function LanguagePicker({
   name?: string;
   size?: "sm" | "md";
 }) {
-  const { lang, setLang } = useLanguage();
+  const { lang, setLang, t } = useLanguage();
   const isSmall = size === "sm";
 
   return (
-    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Preferred language">
+    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("lang.preferred")}>
       <input type="hidden" name={name} value={lang} />
       {languages.map((l) => {
         const active = lang === l.code;

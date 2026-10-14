@@ -10,35 +10,42 @@ import {
   missingProfileFields,
 } from "@/lib/profile";
 import ProfileAvatarUpload from "./ProfileAvatarUpload";
+import { useLanguage } from "./LanguageContext";
 import { learner } from "@/lib/data";
 
 const fieldClass =
   "h-[52px] rounded-2xl border-[1.5px] border-brand-line bg-transparent px-[18px] text-[15px] text-brand-black outline-none focus:border-brand-green dark:border-white/15 dark:text-white";
 const labelClass = "text-sm font-semibold text-brand-black dark:text-white";
 
-function formatDob(dob: string) {
-  if (!dob) return "";
-  const d = new Date(dob);
-  if (Number.isNaN(d.getTime())) return dob;
-  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-}
-
-const viewFields: { label: string; key: keyof LearnerProfile; format?: (v: string) => string }[] = [
-  { label: "Full name", key: "fullName" },
-  { label: "Date of birth", key: "dob", format: formatDob },
-  { label: "Phone number", key: "phone" },
-  { label: "Email", key: "email" },
-  { label: "Guardian name", key: "guardianName" },
-  { label: "School or community group", key: "school" },
-  { label: "Address", key: "address" },
-  { label: "Education", key: "education" },
-  { label: "Work status", key: "workStatus" },
+// `format` turns a stored value into display text; stored values themselves stay in English.
+const viewFields: { labelKey: string; key: keyof LearnerProfile; format?: "date" | "education" | "work" }[] = [
+  { labelKey: "pf.fullName", key: "fullName" },
+  { labelKey: "pf.dob", key: "dob", format: "date" },
+  { labelKey: "pf.phone", key: "phone" },
+  { labelKey: "pf.email", key: "email" },
+  { labelKey: "pf.guardian", key: "guardianName" },
+  { labelKey: "pf.school", key: "school" },
+  { labelKey: "pf.address", key: "address" },
+  { labelKey: "pf.education", key: "education", format: "education" },
+  { labelKey: "pf.workStatus", key: "workStatus", format: "work" },
 ];
+
+const educationOptions = ["10th", "12th", "Graduation", "Post Graduation"];
+const workOptions = ["Student", "Employed", "Unemployed", "Self-Employed"];
 
 export default function ProfileForm() {
   const [profile, setProfile] = useState<LearnerProfile>(defaultProfile);
   const [saved, setSaved] = useState(false);
   const [editing, setEditing] = useState(false);
+  const { t, lang, date } = useLanguage();
+
+  function display(raw: string, format?: "date" | "education" | "work") {
+    if (!raw) return "";
+    if (format === "date") return date(raw);
+    if (format === "education") return t(`edu.${raw}`);
+    if (format === "work") return t(`work.${raw}`);
+    return raw;
+  }
 
   useEffect(() => {
     setProfile(getProfile());
@@ -67,7 +74,7 @@ export default function ProfileForm() {
           <div className="flex flex-col">
             <h1 className="text-2xl font-bold tracking-tight text-brand-black dark:text-white sm:text-3xl">{learner.name}</h1>
             <p className="text-sm text-brand-gray dark:text-white/60">
-              {learner.school} &middot; Learning in {learner.language}
+              {t("pf.learningIn", { school: learner.school, language: t(`lang.${lang}`) })}
             </p>
           </div>
         </div>
@@ -76,7 +83,7 @@ export default function ProfileForm() {
       <div className="flex flex-col gap-4 border-t border-brand-line/70 pt-6 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2.5">
-            <h2 className="text-lg sm:text-xl font-bold text-brand-black dark:text-white">Profile details</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-brand-black dark:text-white">{t("pf.details")}</h2>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
                 complete
@@ -87,15 +94,17 @@ export default function ProfileForm() {
               {complete ? (
                 <>
                   <span className="h-1.5 w-1.5 rounded-full bg-brand-green" />
-                  Profile complete
+                  {t("pf.complete")}
                 </>
+              ) : missing === 1 ? (
+                t("pf.missingOne")
               ) : (
-                `${missing} field${missing === 1 ? "" : "s"} missing`
+                t("pf.missingMany", { n: missing })
               )}
             </span>
           </div>
           <p className="mt-1 text-sm text-brand-gray dark:text-white/55">
-            Kept up to date, your certificates print correctly the first time.
+            {t("pf.keptUpToDate")}
           </p>
         </div>
         {!editing ? (
@@ -104,7 +113,7 @@ export default function ProfileForm() {
             onClick={() => setEditing(true)}
             className="group inline-flex w-fit flex-shrink-0 items-center gap-2 rounded-full border border-brand-line bg-brand-cream/50 py-1.5 pl-4 pr-2 text-sm font-semibold text-brand-black shadow-sm transition-all hover:border-brand-green hover:bg-brand-green/5 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:border-brand-green"
           >
-            <span>Edit profile</span>
+            <span>{t("pf.edit")}</span>
             <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-brand-green text-white shadow-sm transition-transform group-hover:scale-105">
               <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
                 <path
@@ -125,20 +134,20 @@ export default function ProfileForm() {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="pf-name" className={labelClass}>
-                Full name
+                {t("pf.fullName")}
               </label>
               <input
                 id="pf-name"
                 value={profile.fullName}
                 onChange={(e) => update("fullName", e.target.value)}
-                placeholder="e.g. Priya Rai"
+                placeholder={t("pf.namePh")}
                 className={fieldClass}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="pf-dob" className={labelClass}>
-                Date of birth
+                {t("pf.dob")}
               </label>
               <input
                 id="pf-dob"
@@ -151,7 +160,7 @@ export default function ProfileForm() {
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="pf-phone" className={labelClass}>
-                Phone number
+                {t("pf.phone")}
               </label>
               <input
                 id="pf-phone"
@@ -165,7 +174,7 @@ export default function ProfileForm() {
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="pf-email" className={labelClass}>
-                Email (optional)
+                {t("pf.emailOptional")}
               </label>
               <input
                 id="pf-email"
@@ -179,46 +188,46 @@ export default function ProfileForm() {
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="pf-guardian" className={labelClass}>
-                Guardian name (optional)
+                {t("pf.guardianOptional")}
               </label>
               <input
                 id="pf-guardian"
                 value={profile.guardianName}
                 onChange={(e) => update("guardianName", e.target.value)}
-                placeholder="e.g. Anita Rai"
+                placeholder={t("pf.guardianPh")}
                 className={fieldClass}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="pf-school" className={labelClass}>
-                School or community group
+                {t("pf.school")}
               </label>
               <input
                 id="pf-school"
                 value={profile.school}
                 onChange={(e) => update("school", e.target.value)}
-                placeholder="e.g. Schools for Skills, Kolkata"
+                placeholder={t("pf.schoolPh")}
                 className={fieldClass}
               />
             </div>
 
             <div className="flex flex-col gap-1.5 sm:col-span-2">
               <label htmlFor="pf-address" className={labelClass}>
-                Address
+                {t("pf.address")}
               </label>
               <input
                 id="pf-address"
                 value={profile.address}
                 onChange={(e) => update("address", e.target.value)}
-                placeholder="Village / town, district, state"
+                placeholder={t("pf.addressPh")}
                 className={fieldClass}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="pf-education" className={labelClass}>
-                Education
+                {t("pf.education")}
               </label>
               <select
                 id="pf-education"
@@ -226,17 +235,18 @@ export default function ProfileForm() {
                 onChange={(e) => update("education", e.target.value)}
                 className={fieldClass}
               >
-                <option value="">Select education</option>
-                <option value="10th">10th</option>
-                <option value="12th">12th</option>
-                <option value="Graduation">Graduation</option>
-                <option value="Post Graduation">Post Graduation</option>
+                <option value="">{t("pf.selectEducation")}</option>
+                {educationOptions.map((v) => (
+                  <option key={v} value={v}>
+                    {t(`edu.${v}`)}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="pf-work-status" className={labelClass}>
-                Work status
+                {t("pf.workStatus")}
               </label>
               <select
                 id="pf-work-status"
@@ -244,11 +254,12 @@ export default function ProfileForm() {
                 onChange={(e) => update("workStatus", e.target.value)}
                 className={fieldClass}
               >
-                <option value="">Select work status</option>
-                <option value="Student">Student</option>
-                <option value="Employed">Employed</option>
-                <option value="Unemployed">Unemployed</option>
-                <option value="Self-Employed">Self-Employed</option>
+                <option value="">{t("pf.selectWork")}</option>
+                {workOptions.map((v) => (
+                  <option key={v} value={v}>
+                    {t(`work.${v}`)}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -258,7 +269,7 @@ export default function ProfileForm() {
               type="submit"
               className="group inline-flex items-center gap-3 rounded-full bg-brand-green py-1.5 pr-1.5 text-[15px] font-semibold text-white transition-colors hover:bg-brand-green-dark"
             >
-              <span className="pl-6">Save profile</span>
+              <span className="pl-6">{t("pf.save")}</span>
               <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-brand-green">
                 <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
                   <path
@@ -279,7 +290,7 @@ export default function ProfileForm() {
               }}
               className="text-sm font-semibold text-brand-gray hover:text-brand-black dark:text-white/55 dark:hover:text-white"
             >
-              Cancel
+              {t("pf.cancel")}
             </button>
           </div>
         </form>
@@ -287,17 +298,17 @@ export default function ProfileForm() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
           {viewFields.map((f) => {
             const raw = profile[f.key];
-            const value = f.format ? f.format(raw) : raw;
+            const value = display(raw, f.format);
             return (
               <div
                 key={f.key}
                 className="flex flex-col gap-1 rounded-xl border border-brand-line/70 bg-brand-cream/60 p-3.5 shadow-sm transition-all hover:border-brand-green/30 dark:border-white/10 dark:bg-white/[0.03]"
               >
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-brand-gray-light dark:text-white/40">
-                  {f.label}
+                  {t(f.labelKey)}
                 </span>
                 <span className="text-sm font-medium text-brand-black dark:text-white sm:text-[15px]">
-                  {value || <span className="font-normal italic text-brand-gray-light/80 dark:text-white/30">Not set</span>}
+                  {value || <span className="font-normal italic text-brand-gray-light/80 dark:text-white/30">{t("pf.notSet")}</span>}
                 </span>
               </div>
             );
@@ -310,7 +321,7 @@ export default function ProfileForm() {
           <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 flex-shrink-0" aria-hidden="true">
             <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          Profile updated successfully
+          {t("pf.updated")}
         </div>
       ) : null}
     </div>

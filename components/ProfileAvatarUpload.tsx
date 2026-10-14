@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "./LanguageContext";
 
 const STORAGE_KEY = "sfs_profile_photo";
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -16,6 +17,8 @@ export function getStoredAvatar(): string | null {
 
 export default function ProfileAvatarUpload({ initials }: { initials: string }) {
   const [photo, setPhoto] = useState<string | null>(null);
+  const { t } = useLanguage();
+  // Errors are stored as dictionary keys so they follow a language switch.
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -26,11 +29,11 @@ export default function ProfileAvatarUpload({ initials }: { initials: string }) 
   function handleFile(file: File | undefined) {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setError("Please choose an image file.");
+      setError("avatar.chooseImage");
       return;
     }
     if (file.size > MAX_BYTES) {
-      setError("Image must be under 2 MB.");
+      setError("avatar.tooBig");
       return;
     }
     setError("");
@@ -42,7 +45,7 @@ export default function ProfileAvatarUpload({ initials }: { initials: string }) 
         window.localStorage.setItem(STORAGE_KEY, dataUrl);
         window.dispatchEvent(new Event("sfs-avatar-updated"));
       } catch {
-        setError("Couldn't save image — try a smaller file.");
+        setError("avatar.saveFail");
       }
     };
     reader.readAsDataURL(file);
@@ -62,7 +65,7 @@ export default function ProfileAvatarUpload({ initials }: { initials: string }) 
       <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-green text-xl sm:text-2xl font-bold text-white shadow-sm ring-4 ring-brand-green-tint dark:ring-brand-green/20">
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={photo} alt="Profile photo" className="h-full w-full object-cover" />
+          <img src={photo} alt={t("avatar.alt")} className="h-full w-full object-cover" />
         ) : (
           initials
         )}
@@ -74,7 +77,7 @@ export default function ProfileAvatarUpload({ initials }: { initials: string }) 
             onClick={() => inputRef.current?.click()}
             className="rounded-full bg-brand-green px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-green-dark"
           >
-            {photo ? "Change photo" : "Upload photo"}
+            {t(photo ? "avatar.change" : "avatar.upload")}
           </button>
           {photo ? (
             <button
@@ -82,12 +85,12 @@ export default function ProfileAvatarUpload({ initials }: { initials: string }) 
               onClick={removePhoto}
               className="rounded-full border border-brand-line px-3 py-1.5 text-xs sm:text-sm font-semibold text-brand-gray transition-colors hover:border-red-500 hover:text-red-500 dark:border-white/15 dark:text-white/55"
             >
-              Remove
+              {t("avatar.remove")}
             </button>
           ) : null}
         </div>
-        <span className="text-[11px] sm:text-xs text-brand-gray-light dark:text-white/40">JPG or PNG, up to 2 MB</span>
-        {error ? <span className="text-xs font-semibold text-red-500">{error}</span> : null}
+        <span className="text-[11px] sm:text-xs text-brand-gray-light dark:text-white/40">{t("avatar.hint")}</span>
+        {error ? <span className="text-xs font-semibold text-red-500">{t(error)}</span> : null}
       </div>
       <input
         ref={inputRef}

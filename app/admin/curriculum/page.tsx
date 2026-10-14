@@ -1,42 +1,58 @@
 "use client";
 
 import { useState } from "react";
-import AdminSidebar from "@/components/AdminSidebar";
-import AdminNav from "@/components/AdminNav";
+import AdminShell from "@/components/AdminShell";
 import CourseIcon from "@/components/CourseIcon";
 import UploadVideoButton from "@/components/UploadVideoButton";
 import NewCurriculumButton from "@/components/NewCurriculumButton";
 import EditLessonButton from "@/components/EditLessonButton";
+import { Card, PageIntro, ProgressBar, Segmented, TipBox, btnSmall } from "@/components/admin/ui";
+import { ArrowDownIcon, ArrowUpIcon, BookIcon, CertificateIcon, CheckIcon, ClockIcon, QuizIcon, UploadIcon } from "@/components/admin/icons";
 import { Course, courseGroups, courses } from "@/lib/data";
 
-const statusStyles: Record<string, string> = {
-  completed: "bg-brand-green-tint text-brand-green-darker dark:bg-brand-green/15 dark:text-brand-green",
-  "in-progress": "bg-brand-black/5 text-brand-black dark:bg-white/10 dark:text-white",
-  "not-started": "bg-brand-line text-brand-gray dark:bg-white/5 dark:text-white/45",
-};
-
-const textStatusStyles: Record<string, string> = {
-  completed: "text-brand-green-dark dark:text-brand-green",
-  "in-progress": "text-brand-black dark:text-white",
-  "not-started": "text-brand-gray-light dark:text-white/35",
-};
-
-const tabs = [
-  { key: "groups" as const, label: "By group" },
-  { key: "all" as const, label: "All videos" },
+const howItWorks = [
+  { icon: <UploadIcon className="h-6 w-6" />, title: "You upload a video", body: "Each lesson is one short video." },
+  { icon: <QuizIcon className="h-6 w-6" />, title: "Students watch, then answer a quiz", body: "A few easy questions check what they learned." },
+  { icon: <CertificateIcon className="h-6 w-6" />, title: "All lessons done = certificate", body: "Students get it by themselves. Nothing for you to do." },
 ];
 
-export default function CurriculumPage() {
-  const [tab, setTab] = useState<"groups" | "all">("groups");
-  const populatedGroups = courseGroups.filter((group) => courses.some((c) => c.group === group));
+function LessonInfo({ course, topic }: { course: Course; topic?: string }) {
+  return (
+    <div className="flex min-w-0 flex-1 items-start gap-3">
+      <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-green-tint text-brand-green-dark dark:bg-brand-green/15 dark:text-brand-green">
+        <CourseIcon icon={course.thumbIcon} className="h-5 w-5" />
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <span className="text-[16px] font-semibold leading-snug text-brand-black dark:text-white">{course.title}</span>
+        <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-brand-gray dark:text-white/55">
+          {topic ? <span className="font-semibold text-brand-black dark:text-white/80">{topic}</span> : null}
+          <span className="inline-flex items-center gap-1">
+            <ClockIcon /> {course.duration} video
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <QuizIcon /> {course.quizQuestions.length} quiz questions
+          </span>
+        </span>
+        <div className="flex max-w-xs items-center gap-2">
+          <ProgressBar value={course.progress} />
+          <span className="whitespace-nowrap text-xs font-semibold text-brand-gray dark:text-white/55">{course.progress}% of students finished</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function LessonsPage() {
+  const [view, setView] = useState<"topics" | "list">("topics");
+  const [moved, setMoved] = useState<string | null>(null);
+  const topics = courseGroups.filter((group) => courses.some((c) => c.group === group));
 
   const [order, setOrder] = useState<Record<string, string[]>>(() =>
-    Object.fromEntries(
-      populatedGroups.map((group) => [group, courses.filter((c) => c.group === group).map((c) => c.slug)])
-    )
+    Object.fromEntries(topics.map((group) => [group, courses.filter((c) => c.group === group).map((c) => c.slug)]))
   );
+  const bySlug = Object.fromEntries(courses.map((c) => [c.slug, c])) as Record<string, Course>;
 
-  function moveLesson(group: string, slug: string, direction: -1 | 1) {
+  function move(group: string, slug: string, direction: -1 | 1) {
     setOrder((prev) => {
       const list = [...(prev[group] ?? [])];
       const index = list.indexOf(slug);
@@ -45,160 +61,122 @@ export default function CurriculumPage() {
       [list[index], list[target]] = [list[target], list[index]];
       return { ...prev, [group]: list };
     });
+    setMoved(bySlug[slug]?.title ?? null);
   }
 
-  const byslug = Object.fromEntries(courses.map((c) => [c.slug, c])) as Record<string, Course>;
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
+    <AdminShell>
+      <PageIntro
+        title="Lessons"
+        description={`All ${courses.length} videos your students watch, sorted into ${topics.length} topics. Add a new video, fix a lesson, or change the order students see them in.`}
+        actions={
+          <>
+            <NewCurriculumButton />
+            <UploadVideoButton />
+          </>
+        }
+      />
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <AdminNav
-          title="Curriculum"
-          subtitle={`${courses.length} lessons across ${populatedGroups.length} curriculums`}
-          action={
-            <div className="flex flex-shrink-0 items-center gap-3">
-              <NewCurriculumButton />
-              <UploadVideoButton />
-            </div>
-          }
-        />
+      <Card title="How lessons work" help="Three steps, from your video to a student’s certificate." icon={<BookIcon className="h-5 w-5" />}>
+        <ol className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {howItWorks.map((s, i) => (
+            <li key={s.title} className="relative flex items-start gap-3 rounded-2xl bg-brand-cream p-4 dark:bg-white/5">
+              <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-green text-white">{s.icon}</span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs font-semibold uppercase tracking-wide text-brand-green-dark dark:text-brand-green">Step {i + 1}</span>
+                <span className="text-[15px] font-semibold leading-snug text-brand-black dark:text-white">{s.title}</span>
+                <span className="text-sm text-brand-gray dark:text-white/55">{s.body}</span>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </Card>
 
-        <main className="flex flex-1 flex-col gap-6 bg-brand-cream px-11 py-9 dark:bg-brand-black">
-          <div className="flex w-fit items-center gap-2 rounded-full border border-brand-line p-1 dark:border-white/15">
-            {tabs.map((tb) => (
-              <button
-                key={tb.key}
-                type="button"
-                onClick={() => setTab(tb.key)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                  tab === tb.key
-                    ? "bg-brand-green text-white"
-                    : "text-brand-gray hover:text-brand-black dark:text-white/70 dark:hover:text-white"
-                }`}
+      <Segmented
+        label="Show lessons"
+        value={view}
+        onChange={setView}
+        options={[
+          { key: "topics", label: "Sorted by topic" },
+          { key: "list", label: "One long list" },
+        ]}
+      />
+
+      {moved ? (
+        <div role="status" className="flex items-center gap-2 rounded-2xl bg-brand-green px-4 py-3 text-sm font-semibold text-white">
+          <CheckIcon className="h-5 w-5" /> Moved “{moved}”. Students will now see the lessons in this order.
+        </div>
+      ) : null}
+
+      {view === "topics" ? (
+        <div className="flex flex-col gap-5">
+          {topics.map((group, gi) => {
+            const slugs = order[group] ?? [];
+            return (
+              <Card
+                key={group}
+                title={`Topic ${gi + 1}: ${group}`}
+                help={`${slugs.length} lessons. Students watch them from top to bottom.`}
+                action={<UploadVideoButton defaultGroup={group} compact />}
               >
-                {tb.label}
-              </button>
-            ))}
-          </div>
-
-          {tab === "groups" ? (
-            <div className="flex flex-col gap-6 overflow-y-auto pb-6">
-              {populatedGroups.map((group) => {
-                const slugOrder = order[group] ?? [];
-                return (
-                  <div key={group} className="rounded-2xl bg-white p-5 dark:bg-brand-ink">
-                    <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-semibold uppercase tracking-wide text-brand-gray-light dark:text-white/35">
-                        Curriculum &middot; {group}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <span className="rounded-lg bg-brand-green-tint px-2.5 py-1 text-xs font-semibold text-brand-green-darker dark:bg-brand-green/15 dark:text-brand-green">
-                          {slugOrder.length} LESSONS
-                        </span>
-                        <UploadVideoButton defaultGroup={group} compact />
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {slugOrder.map((slug, i) => {
-                        const course = byslug[slug];
-                        if (!course) return null;
-                        return (
-                          <div
-                            key={course.slug}
-                            className="flex items-center gap-4 rounded-xl border border-brand-line px-4 py-3 dark:border-white/10"
+                <ol className="flex flex-col gap-3">
+                  {slugs.map((slug, i) => {
+                    const course = bySlug[slug];
+                    if (!course) return null;
+                    return (
+                      <li
+                        key={slug}
+                        className="flex flex-col gap-4 rounded-2xl border border-brand-line p-4 dark:border-white/10 md:flex-row md:items-center"
+                      >
+                        <div className="flex min-w-0 flex-1 items-start gap-3">
+                          <span
+                            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-black text-sm font-semibold text-white dark:bg-white dark:text-brand-black"
+                            aria-label={`Lesson ${i + 1}`}
                           >
-                            <div className="flex flex-col">
-                              <button
-                                type="button"
-                                onClick={() => moveLesson(group, slug, -1)}
-                                disabled={i === 0}
-                                aria-label="Move lesson up"
-                                className="flex h-4 w-5 items-center justify-center text-brand-gray-light transition-colors hover:text-brand-black disabled:cursor-not-allowed disabled:opacity-30 dark:text-white/35 dark:hover:text-white"
-                              >
-                                <svg viewBox="0 0 24 24" fill="none" className="h-3 w-3" aria-hidden="true">
-                                  <path d="M6 15l6-6 6 6" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => moveLesson(group, slug, 1)}
-                                disabled={i === slugOrder.length - 1}
-                                aria-label="Move lesson down"
-                                className="flex h-4 w-5 items-center justify-center text-brand-gray-light transition-colors hover:text-brand-black disabled:cursor-not-allowed disabled:opacity-30 dark:text-white/35 dark:hover:text-white"
-                              >
-                                <svg viewBox="0 0 24 24" fill="none" className="h-3 w-3" aria-hidden="true">
-                                  <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </button>
-                            </div>
-                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand-green-tint text-brand-green-dark dark:bg-brand-green/15 dark:text-brand-green">
-                              <CourseIcon icon={course.thumbIcon} className="h-5 w-5" />
-                            </div>
-                            <div className="flex flex-1 flex-col">
-                              <span className="text-[15px] font-semibold text-brand-black dark:text-white">{course.title}</span>
-                              <span className="text-sm text-brand-gray dark:text-white/55">{course.duration} lesson</span>
-                            </div>
-                            <span
-                              className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${statusStyles[course.status]}`}
-                            >
-                              {course.status.replace("-", " ").toUpperCase()}
-                            </span>
-                            <EditLessonButton course={course} />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="flex-1 overflow-hidden rounded-2xl bg-white p-2 dark:bg-brand-ink">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-brand-cream dark:bg-white/5">
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">LESSON</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">GROUP</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">DURATION</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">STATUS</th>
-                    <th className="px-5 py-3.5 text-right text-xs font-semibold text-brand-gray-light dark:text-white/35">EDIT</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {courses.map((c) => (
-                    <tr key={c.slug} className="border-t border-brand-line dark:border-white/10">
-                      <td className="px-5 py-4 text-[15px] font-semibold text-brand-black dark:text-white">{c.title}</td>
-                      <td className="px-5 py-4 text-sm text-brand-gray dark:text-white/55">{c.group}</td>
-                      <td className="px-5 py-4 text-sm text-brand-gray dark:text-white/55">{c.duration}</td>
-                      <td className={`px-5 py-4 text-sm font-semibold ${textStatusStyles[c.status]}`}>
-                        {c.status.replace("-", " ").toUpperCase()}
-                      </td>
-                      <td className="px-5 py-4 text-right">
-                        <div className="flex justify-end">
-                          <EditLessonButton course={c} />
+                            {i + 1}
+                          </span>
+                          <LessonInfo course={course} />
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                        <div className="flex flex-wrap items-center gap-2 md:flex-shrink-0">
+                          <button type="button" onClick={() => move(group, slug, -1)} disabled={i === 0} className={btnSmall} aria-label={`Move ${course.title} up`}>
+                            <ArrowUpIcon /> Move up
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => move(group, slug, 1)}
+                            disabled={i === slugs.length - 1}
+                            className={btnSmall}
+                            aria-label={`Move ${course.title} down`}
+                          >
+                            <ArrowDownIcon /> Move down
+                          </button>
+                          <EditLessonButton course={course} />
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <Card title={`All ${courses.length} lessons`} help="Every lesson in one place. Tap Edit to change one.">
+          <ul className="flex flex-col gap-3">
+            {courses.map((c) => (
+              <li key={c.slug} className="flex flex-col gap-3 rounded-2xl border border-brand-line p-4 dark:border-white/10 sm:flex-row sm:items-center">
+                <LessonInfo course={c} topic={c.group} />
+                <EditLessonButton course={c} />
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
-          <div className="flex flex-col gap-4 rounded-2xl bg-white p-6 dark:bg-brand-ink">
-            <span className="text-sm font-semibold uppercase tracking-wide text-brand-gray-light dark:text-white/35">
-              Certificate template
-            </span>
-            <p className="text-sm leading-relaxed text-brand-gray dark:text-white/55">
-              QR-verifiable certificates are issued automatically once a learner completes every video in a course
-              and passes each quiz. Certificate ID format:{" "}
-              <span className="font-semibold text-brand-black dark:text-white">SFS-2026-XXXXXX</span>.
-            </p>
-          </div>
-        </main>
-      </div>
-    </div>
+      <TipBox title="About certificates">
+        Students get their certificate by themselves once they finish every lesson and pass each quiz. Every certificate has its own code
+        (like <span className="font-semibold">SFS-2026-000123</span>) and a QR code anyone can scan to check it is real.
+      </TipBox>
+    </AdminShell>
   );
 }

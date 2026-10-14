@@ -1,4 +1,5 @@
 import { Language } from "./data";
+import { ui } from "./translations/ui";
 
 export const translations: Record<Language, Record<string, string>> = {
   EN: {
@@ -171,6 +172,31 @@ export const translations: Record<Language, Record<string, string>> = {
   },
 };
 
-export function translate(lang: Language, key: string): string {
-  return translations[lang]?.[key] ?? translations.EN[key] ?? key;
+export type TranslateVars = Record<string, string | number>;
+
+const nativeDigits: Partial<Record<Language, string>> = {
+  BN: "০১২৩৪৫৬৭৮৯",
+  HI: "०१२३४५६७८९",
+  NE: "०१२३४५६७८९",
+};
+
+/** Swap ASCII digits for the language's own numerals (Bengali / Devanagari). English is left as is. */
+export function localizeDigits(lang: Language, value: string | number): string {
+  const s = String(value);
+  const digits = nativeDigits[lang];
+  return digits ? s.replace(/[0-9]/g, (d) => digits[Number(d)]) : s;
+}
+
+export function translate(lang: Language, key: string, vars?: TranslateVars): string {
+  let out = ui[key]?.[lang] ?? translations[lang]?.[key] ?? ui[key]?.EN ?? translations.EN[key] ?? key;
+  if (vars) out = out.replace(/\{(\w+)\}/g, (m, name) => (name in vars ? String(vars[name]) : m));
+  return localizeDigits(lang, out);
+}
+
+const dateLocales: Record<Language, string> = { EN: "en-IN", BN: "bn-IN", HI: "hi-IN", NE: "ne-NP" };
+
+export function formatDate(lang: Language, iso: string, opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" }) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return localizeDigits(lang, d.toLocaleDateString(dateLocales[lang], opts));
 }

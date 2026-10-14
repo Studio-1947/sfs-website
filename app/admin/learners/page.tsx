@@ -1,121 +1,193 @@
 "use client";
 
-import { useState } from "react";
-import AdminSidebar from "@/components/AdminSidebar";
-import AdminNav from "@/components/AdminNav";
+import { useMemo, useState } from "react";
+import AdminShell from "@/components/AdminShell";
 import NewBatchButton from "@/components/NewBatchButton";
-import { adminBatches, adminLearners } from "@/lib/data";
+import {
+  Avatar,
+  Card,
+  EmptyState,
+  Legend,
+  PageIntro,
+  ProgressBar,
+  SearchBox,
+  Segmented,
+  StatusPill,
+  TipBox,
+  btnSmall,
+} from "@/components/admin/ui";
+import { BellIcon, CalendarIcon, CheckIcon, GlobeIcon, UsersIcon } from "@/components/admin/icons";
+import { batchStatus, learnerStatus, parseProgress } from "@/lib/admin";
+import { adminBatches, adminLearners, type AdminBatch, type AdminLearner } from "@/lib/data";
 
-const learnerStatusStyles: Record<string, string> = {
-  Active: "text-brand-green-dark dark:text-brand-green",
-  Completed: "text-brand-black dark:text-white",
-  Invited: "text-brand-gray-light dark:text-white/35",
-};
+type Tab = "students" | "batches";
+type Filter = "all" | AdminLearner["status"];
 
-const batchStatusStyles: Record<string, string> = {
-  Active: "bg-brand-green-tint text-brand-green-darker dark:bg-brand-green/15 dark:text-brand-green",
-  Upcoming: "bg-brand-black/5 text-brand-black dark:bg-white/10 dark:text-white",
-  Completed: "bg-brand-line text-brand-gray dark:bg-white/5 dark:text-white/45",
-};
+const batchOrder: AdminBatch["status"][] = ["Active", "Upcoming", "Completed"];
 
-const tabs = [
-  { key: "learners" as const, label: "Learners" },
-  { key: "batches" as const, label: "Batches" },
-];
+export default function StudentsPage({ searchParams }: { searchParams: { tab?: string } }) {
+  const [tab, setTab] = useState<Tab>(searchParams.tab === "batches" ? "batches" : "students");
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<Filter>("all");
+  const [reminded, setReminded] = useState<string[]>([]);
 
-export default function LearnersPage() {
-  const [tab, setTab] = useState<"learners" | "batches">("learners");
+  const count = (s: AdminLearner["status"]) => adminLearners.filter((l) => l.status === s).length;
+
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return adminLearners.filter(
+      (l) => (filter === "all" || l.status === filter) && (!q || l.name.toLowerCase().includes(q) || l.school.toLowerCase().includes(q))
+    );
+  }, [query, filter]);
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
+    <AdminShell>
+      <PageIntro
+        title="Students"
+        description="Everyone learning with you, and the batches (groups) they study in. Find a student, see how far they’ve got, and nudge anyone who is stuck."
+        actions={tab === "batches" ? <NewBatchButton /> : null}
+      />
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <AdminNav
-          title="Learners"
-          subtitle={
-            tab === "learners"
-              ? `${adminLearners.length} learners enrolled`
-              : `${adminBatches.length} batches across all programmes`
-          }
-          action={tab === "batches" ? <NewBatchButton /> : undefined}
-        />
+      <Segmented
+        label="Show"
+        value={tab}
+        onChange={setTab}
+        options={[
+          { key: "students", label: "Students", count: adminLearners.length, icon: <UsersIcon className="h-4 w-4" /> },
+          { key: "batches", label: "Batches", count: adminBatches.length, icon: <CalendarIcon className="h-4 w-4" /> },
+        ]}
+      />
 
-        <main className="flex flex-1 flex-col gap-6 bg-brand-cream px-11 py-9 dark:bg-brand-black">
-          <div className="flex w-fit items-center gap-2 rounded-full border border-brand-line p-1 dark:border-white/15">
-            {tabs.map((tb) => (
-              <button
-                key={tb.key}
-                type="button"
-                onClick={() => setTab(tb.key)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                  tab === tb.key
-                    ? "bg-brand-green text-white"
-                    : "text-brand-gray hover:text-brand-black dark:text-white/70 dark:hover:text-white"
-                }`}
-              >
-                {tb.label}
-              </button>
-            ))}
+      {tab === "students" ? (
+        <>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <SearchBox value={query} onChange={setQuery} placeholder="Type a name or school to find a student" />
+            <Segmented
+              label="Filter students"
+              value={filter}
+              onChange={setFilter}
+              options={[
+                { key: "all", label: "Everyone", count: adminLearners.length },
+                { key: "Active", label: "Learning", count: count("Active") },
+                { key: "Completed", label: "Finished", count: count("Completed") },
+                { key: "Invited", label: "Not started", count: count("Invited") },
+              ]}
+            />
           </div>
 
-          {tab === "learners" ? (
-            <div className="flex-1 overflow-hidden rounded-2xl bg-white p-2 dark:bg-brand-ink">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-brand-cream dark:bg-white/5">
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">LEARNER</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">SCHOOL / GROUP</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">LANGUAGE</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">PROGRESS</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">STATUS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {adminLearners.map((l) => (
-                    <tr key={l.name} className="border-t border-brand-line dark:border-white/10">
-                      <td className="px-5 py-4 text-[15px] font-semibold text-brand-black dark:text-white">{l.name}</td>
-                      <td className="px-5 py-4 text-sm text-brand-gray dark:text-white/55">{l.school}</td>
-                      <td className="px-5 py-4 text-sm text-brand-gray dark:text-white/55">{l.language}</td>
-                      <td className="px-5 py-4 text-sm text-brand-gray dark:text-white/55">{l.progress}</td>
-                      <td className={`px-5 py-4 text-sm font-semibold ${learnerStatusStyles[l.status]}`}>{l.status}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <Legend items={(Object.keys(learnerStatus) as AdminLearner["status"][]).map((k) => ({ tone: learnerStatus[k].tone, label: learnerStatus[k].label, meaning: learnerStatus[k].meaning }))} />
+
+          {shown.length === 0 ? (
+            <EmptyState
+              title="No students found"
+              body={query ? `Nobody matches “${query}”. Check the spelling, or try part of the name.` : "No students have this label right now."}
+              action={
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    setFilter("all");
+                  }}
+                  className={btnSmall}
+                >
+                  Show everyone again
+                </button>
+              }
+            />
           ) : (
-            <div className="flex-1 overflow-hidden rounded-2xl bg-white p-2 dark:bg-brand-ink">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-brand-cream dark:bg-white/5">
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">BATCH</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">PROGRAMME</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">LEARNERS</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">START DATE</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-brand-gray-light dark:text-white/35">STATUS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {adminBatches.map((b) => (
-                    <tr key={b.name} className="border-t border-brand-line dark:border-white/10">
-                      <td className="px-5 py-4 text-[15px] font-semibold text-brand-black dark:text-white">{b.name}</td>
-                      <td className="px-5 py-4 text-sm text-brand-gray dark:text-white/55">{b.programme}</td>
-                      <td className="px-5 py-4 text-sm text-brand-gray dark:text-white/55">{b.learners}</td>
-                      <td className="px-5 py-4 text-sm text-brand-gray dark:text-white/55">{b.startDate}</td>
-                      <td className="px-5 py-4">
-                        <span className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${batchStatusStyles[b.status]}`}>
-                          {b.status.toUpperCase()}
+            <ul className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+              {shown.map((l) => {
+                const st = learnerStatus[l.status];
+                const p = parseProgress(l.progress);
+                const sent = reminded.includes(l.name);
+                return (
+                  <li key={l.name} className="flex flex-col gap-4 rounded-3xl border border-brand-line/70 bg-white p-5 dark:border-white/10 dark:bg-brand-ink">
+                    <div className="flex items-start gap-3">
+                      <Avatar name={l.name} size={48} />
+                      <div className="flex min-w-0 flex-1 flex-col gap-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-lg font-semibold text-brand-black dark:text-white">{l.name}</span>
+                          <StatusPill tone={st.tone}>{st.label}</StatusPill>
+                        </div>
+                        <span className="text-sm text-brand-gray dark:text-white/55">{l.school}</span>
+                        <span className="inline-flex items-center gap-1.5 text-sm text-brand-gray dark:text-white/55">
+                          <GlobeIcon className="h-4 w-4" /> Learns in {l.language}
                         </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-baseline justify-between text-sm">
+                        <span className="font-semibold text-brand-black dark:text-white">
+                          Finished {p.done} of {p.total} topics
+                        </span>
+                        <span className="font-semibold text-brand-green-dark dark:text-brand-green">
+                          {p.total ? Math.round((p.done / p.total) * 100) : 0}%
+                        </span>
+                      </div>
+                      <ProgressBar value={p.done} max={p.total} tone={l.status === "Invited" ? "amber" : "green"} />
+                    </div>
+
+                    {l.status === "Invited" ? (
+                      <button
+                        type="button"
+                        disabled={sent}
+                        onClick={() => setReminded((r) => [...r, l.name])}
+                        className={`${btnSmall} w-fit`}
+                      >
+                        {sent ? (
+                          <>
+                            <CheckIcon className="h-4 w-4" /> Reminder sent to {l.name}
+                          </>
+                        ) : (
+                          <>
+                            <BellIcon className="h-4 w-4" /> Remind {l.name} to start
+                          </>
+                        )}
+                      </button>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
           )}
-        </main>
-      </div>
-    </div>
+        </>
+      ) : (
+        <>
+          <TipBox title="What is a batch?">
+            A batch is a group of students who start the same course on the same day, like a class at school.
+          </TipBox>
+
+          {batchOrder.map((status) => {
+            const list = adminBatches.filter((b) => b.status === status);
+            if (!list.length) return null;
+            const st = batchStatus[status];
+            return (
+              <Card key={status} title={`${st.label} (${list.length})`} help={`These batches: ${st.meaning}.`}>
+                <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  {list.map((b) => (
+                    <li key={b.name} className="flex flex-col gap-3 rounded-2xl border border-brand-line p-4 dark:border-white/10">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-[17px] font-semibold text-brand-black dark:text-white">{b.name}</span>
+                        <StatusPill tone={st.tone}>{st.label}</StatusPill>
+                      </div>
+                      <span className="text-sm leading-snug text-brand-gray dark:text-white/60">{b.programme}</span>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1.5 border-t border-brand-line pt-3 text-sm dark:border-white/10">
+                        <span className="inline-flex items-center gap-1.5 font-semibold text-brand-black dark:text-white">
+                          <UsersIcon className="h-4 w-4 text-brand-green-dark dark:text-brand-green" /> {b.learners} students
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 text-brand-gray dark:text-white/60">
+                          <CalendarIcon className="h-4 w-4" /> {status === "Upcoming" ? "Starts" : "Started"} {b.startDate}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            );
+          })}
+        </>
+      )}
+    </AdminShell>
   );
 }

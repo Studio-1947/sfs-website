@@ -2,6 +2,7 @@
 
 import React from "react";
 import Logo from "./Logo";
+import { useLanguage } from "./LanguageContext";
 
 export interface CertificateProps {
   learnerName: string;
@@ -23,6 +24,7 @@ export default function CertificateDocument({
   totalVideos,
   issueDate = "October 2026",
 }: CertificateProps) {
+  const { t, n } = useLanguage();
   const pct = Math.round((completedCount / totalVideos) * 100);
 
   return (
@@ -93,12 +95,12 @@ export default function CertificateDocument({
                 <Logo size={32} />
                 <div className="hidden h-8 w-px bg-amber-600/25 dark:bg-amber-400/25 sm:block" />
                 <span className="text-xs font-bold uppercase tracking-widest text-[#565A0D] dark:text-brand-green sm:text-sm">
-                  Faculty of Allied Health Sciences
+                  {t("certdoc.faculty")}
                 </span>
               </div>
               <div className="flex items-center gap-2 rounded-full border border-amber-600/25 bg-amber-500/10 px-3.5 py-1 text-xs font-semibold text-amber-800 dark:border-amber-400/20 dark:text-amber-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                <span>CREDENTIAL ID: {certificateId}</span>
+                <span>{t("certdoc.credentialId")} {certificateId}</span>
               </div>
             </div>
 
@@ -107,17 +109,17 @@ export default function CertificateDocument({
               <div className="inline-flex items-center gap-3">
                 <div className="h-px w-8 bg-gradient-to-r from-transparent to-amber-600/60 dark:to-amber-400/60 sm:w-16" />
                 <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-brand-green-darker dark:text-brand-green sm:text-xs">
-                  Official Recognition of Competency
+                  {t("certdoc.recognition")}
                 </span>
                 <div className="h-px w-8 bg-gradient-to-l from-transparent to-amber-600/60 dark:to-amber-400/60 sm:w-16" />
               </div>
 
               <h2 className="mt-2 font-serif text-2xl font-bold tracking-tight text-[#181614] dark:text-white sm:text-4xl md:text-5xl">
-                CERTIFICATE OF COMPLETION
+                {t("certdoc.title")}
               </h2>
 
               <p className="mt-2 text-xs font-medium italic text-stone-600 dark:text-stone-300 sm:text-sm">
-                This document certifies that
+                {t("certdoc.certifies")}
               </p>
             </div>
 
@@ -133,11 +135,11 @@ export default function CertificateDocument({
               <p className="mt-4 max-w-lg text-xs leading-relaxed text-stone-600 dark:text-stone-300 sm:text-sm">
                 {isComplete ? (
                   <span>
-                    has satisfactorily completed all didactic curricula, instructional modules, and comprehensive practical assessments for
+                    {t("certdoc.completed")}
                   </span>
                 ) : (
                   <span>
-                    is currently enrolled and actively progressing through the accredited educational requirements for
+                    {t("certdoc.enrolled")}
                   </span>
                 )}
               </p>
@@ -148,7 +150,7 @@ export default function CertificateDocument({
                   {courseTitle}
                 </h3>
                 <p className="mt-1 text-xs text-stone-600 dark:text-stone-300 sm:text-xs">
-                  Core Foundations: Human Anatomy, Emergency First Aid &amp; CPR, and Clinical Hygiene
+                  {t("certdoc.foundations")}
                 </p>
               </div>
             </div>
@@ -177,7 +179,7 @@ export default function CertificateDocument({
                 <div className="w-full border-t border-stone-400/50 pt-1.5 dark:border-stone-600/60" />
                 <span className="text-xs font-bold text-[#181614] dark:text-white sm:text-sm">Dr. Arindam Ghosh</span>
                 <span className="text-[11px] text-stone-600 dark:text-stone-300">
-                  Director of Medical Training
+                  {t("certdoc.sig1Role")}
                 </span>
                 <span className="text-[10px] text-stone-600 dark:text-stone-300">
                   Schools for Skills Foundation
@@ -209,7 +211,7 @@ export default function CertificateDocument({
                     {/* Text along path */}
                     <text fontSize="6" fontWeight="bold" fill="#8C5C15" className="dark:fill-[#DFB76C] uppercase tracking-[0.18em]">
                       <textPath href="#seal-text-path" startOffset="50%" textAnchor="middle">
-                        ★ SCHOOLS FOR SKILLS ★ VERIFIED
+                        {t("certdoc.seal")}
                       </textPath>
                     </text>
 
@@ -228,9 +230,9 @@ export default function CertificateDocument({
                   </div>
                 </div>
                 <span className="mt-4 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400">
-                  {isComplete ? "VERIFIED CREDENTIAL" : "PREVIEW CREDENTIAL"}
+                  {t(isComplete ? "certdoc.verifiedCred" : "certdoc.previewCred")}
                 </span>
-                <span className="text-[10px] text-stone-600 dark:text-stone-300">Issued: {issueDate}</span>
+                <span className="text-[10px] text-stone-600 dark:text-stone-300">{t("certdoc.issued", { date: issueDate })}</span>
               </div>
 
               {/* Right Signatory & QR Verification */}
@@ -257,7 +259,7 @@ export default function CertificateDocument({
                     <div className="w-full border-t border-stone-400/50 pt-1.5 dark:border-stone-600/60" />
                     <span className="text-xs font-bold text-[#181614] dark:text-white sm:text-sm">Priya Mukherjee</span>
                     <span className="text-[11px] text-stone-600 dark:text-stone-300">
-                      Dean of Certification &amp; Curriculum
+                      {t("certdoc.sig2Role")}
                     </span>
                   </div>
 
@@ -302,7 +304,7 @@ export default function CertificateDocument({
                       <rect x="63" y="63" width="5" height="5" fill="currentColor" />
                       <rect x="68" y="68" width="5" height="5" fill="currentColor" />
                     </svg>
-                    <span className="text-[8px] font-bold tracking-tight text-stone-700">SCAN VERIFY</span>
+                    <span className="text-[8px] font-bold tracking-tight text-stone-700">{t("certdoc.scan")}</span>
                   </div>
                 </div>
               </div>
@@ -317,12 +319,12 @@ export default function CertificateDocument({
                       !
                     </span>
                     <span className="font-semibold text-amber-900 dark:text-amber-200">
-                      Official Preview &mdash; Complete all {totalVideos} chapters to activate and download this certificate.
+                      {t("certdoc.previewNote", { total: totalVideos })}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 font-bold text-amber-800 dark:text-amber-300">
-                    <span>{completedCount} of {totalVideos} complete</span>
-                    <span className="rounded-full bg-amber-600/20 px-2 py-0.5 text-[11px]">{pct}%</span>
+                    <span>{t("certdoc.completeCount", { done: completedCount, total: totalVideos })}</span>
+                    <span className="rounded-full bg-amber-600/20 px-2 py-0.5 text-[11px]">{n(`${pct}%`)}</span>
                   </div>
                 </div>
               </div>

@@ -57,9 +57,9 @@ function SignOutIcon() {
 }
 
 const menuItems = [
-  { label: "View Profile", href: "/admin/settings", icon: ProfileIcon },
-  { label: "Account Setting", href: "/admin/settings", icon: SettingsIcon },
-  { label: "Login Activity", href: "/admin/settings", icon: ActivityIcon },
+  { label: "My details", href: "/admin/settings#organisation", icon: ProfileIcon },
+  { label: "Settings", href: "/admin/settings", icon: SettingsIcon },
+  { label: "Get help", href: "/admin/settings#help", icon: ActivityIcon },
 ];
 
 export default function AdminProfileMenu() {
@@ -80,14 +80,16 @@ export default function AdminProfileMenu() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-brand-black/5 dark:hover:bg-white/5"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className="flex min-h-[44px] items-center gap-2.5 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-brand-black/5 dark:hover:bg-white/5"
       >
         <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-green text-sm font-semibold text-white">
           {adminUser.name.charAt(0)}
         </span>
         <span className="hidden flex-col items-start leading-tight sm:flex">
           {adminUser.verified ? null : (
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-orange-500">Unverified</span>
+            <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-300">Not verified yet</span>
           )}
           <span className="text-sm font-semibold text-brand-black dark:text-white">{adminUser.name}</span>
         </span>
@@ -105,6 +107,11 @@ export default function AdminProfileMenu() {
             <div className="flex min-w-0 flex-col">
               <span className="truncate text-[15px] font-semibold text-brand-black dark:text-white">{adminUser.name}</span>
               <span className="truncate text-sm text-brand-gray dark:text-white/55">{adminUser.email}</span>
+              {adminUser.verified ? null : (
+                <a href="/admin/settings#organisation" className="mt-1 text-xs font-semibold text-amber-700 underline dark:text-amber-300">
+                  Verify your account
+                </a>
+              )}
             </div>
           </div>
 

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AvatarBadge from "./AvatarBadge";
+import { useLanguage } from "./LanguageContext";
 import { learner } from "@/lib/data";
 
 function ProfileIcon() {
@@ -39,14 +40,15 @@ function SignOutIcon() {
 }
 
 const menuItems = [
-  { label: "View Profile", href: "/profile", icon: ProfileIcon },
-  { label: "My certificate", href: "/certificate", icon: CertificateIcon },
+  { labelKey: "menu.viewProfile", href: "/profile", icon: ProfileIcon },
+  { labelKey: "menu.myCertificate", href: "/certificate", icon: CertificateIcon },
 ];
 
 export default function LearnerProfileMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -87,13 +89,13 @@ export default function LearnerProfileMenu() {
               const Icon = item.icon;
               return (
                 <Link
-                  key={item.label}
+                  key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
                   className="flex items-center gap-3 px-5 py-2.5 text-sm font-semibold text-brand-gray transition-colors hover:bg-brand-cream hover:text-brand-black dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-white"
                 >
                   <Icon />
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               );
             })}
@@ -106,7 +108,7 @@ export default function LearnerProfileMenu() {
               className="flex w-full items-center gap-3 px-5 py-2.5 text-sm font-semibold text-brand-gray transition-colors hover:bg-brand-cream hover:text-red-500 dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-red-400"
             >
               <SignOutIcon />
-              Sign out
+              {t("menu.signOut")}
             </button>
           </div>
         </div>

@@ -5,7 +5,7 @@ import { languages } from "@/lib/data";
 import { useLanguage } from "./LanguageContext";
 
 export default function NavLanguagePicker({ light = false }: { light?: boolean }) {
-  const { lang, setLang } = useLanguage();
+  const { lang, setLang, t } = useLanguage();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -30,7 +30,7 @@ export default function NavLanguagePicker({ light = false }: { light?: boolean }
             : "border-brand-line text-brand-black dark:border-white/15 dark:text-white"
         }`}
       >
-        <span className="sr-only">Selected language: </span>
+        <span className="sr-only">{t("lang.selected")}</span>
         {lang.toLowerCase()}
         <svg viewBox="0 0 24 24" fill="none" className={`h-3.5 w-3.5 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`}>
           <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />

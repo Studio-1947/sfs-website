@@ -11,7 +11,8 @@ import ChapterOutline from "@/components/learn/ChapterOutline";
 import { ArrowLeft, ArrowRight, CheckIcon, ClockIcon, QuizIcon } from "@/components/learn/icons";
 import { useLanguage } from "@/components/LanguageContext";
 import { buildVtt, formatClock, subtitleCues } from "@/lib/subtitles";
-import { adjacentChapters, chapterNumber, chapterStates, course as courseMeta, courses, languages } from "@/lib/data";
+import { adjacentChapters, chapterNumber, chapterStates, courses } from "@/lib/data";
+import { localizeCourse, localizeCourseMeta } from "@/lib/localize";
 import { getLessonAudio, hasLessonAudioTracks, lessonAudioLanguages, type LessonAudioLanguage } from "@/lib/lessonAudio";
 
 const DEFAULT_VIDEO = "/videos/lesson-demo.mp4";
@@ -19,8 +20,8 @@ const DEFAULT_VIDEO = "/videos/lesson-demo.mp4";
 type Tab = "overview" | "steps" | "transcript";
 
 export default function LessonPage({ params }: { params: { slug: string } }) {
-  const { t, lang } = useLanguage();
-  const chapter = courses.find((c) => c.slug === params.slug);
+  const { t, n, lang } = useLanguage();
+  const baseChapter = courses.find((c) => c.slug === params.slug);
   const [captions, setCaptions] = useState(true);
   const [selectedAudioLang, setSelectedAudioLang] = useState<LessonAudioLanguage | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -46,26 +47,30 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
     v.play().catch(() => {});
   }
 
-  if (!chapter) return notFound();
+  if (!baseChapter) return notFound();
+  const chapter = localizeCourse(baseChapter, lang);
+  const courseMeta = localizeCourseMeta(lang);
 
   const audioLang = selectedAudioLang ?? lang;
   const dubbedAudio = getLessonAudio(chapter.slug, audioLang);
   const hasAudioChoices = hasLessonAudioTracks(chapter.slug);
 
   const number = chapterNumber(chapter.slug);
-  const { prev, next } = adjacentChapters(chapter.slug);
+  const adjacent = adjacentChapters(chapter.slug);
+  const prev = adjacent.prev && localizeCourse(adjacent.prev, lang);
+  const next = adjacent.next && localizeCourse(adjacent.next, lang);
   const state = chapterStates()[number - 1];
   const quizDone = state.quiz === "done";
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: "overview", label: "Overview" },
-    { key: "steps", label: "Step by step" },
+    { key: "overview", label: t("lesson.overview") },
+    { key: "steps", label: t("lesson.stepByStep") },
     { key: "transcript", label: t("lesson.transcript") },
   ];
 
   return (
     <div>
-      <LearnerNav active="lesson" backHref="/dashboard" backLabel="Course overview" />
+      <LearnerNav active="lesson" backHref="/dashboard" backLabel={t("lesson.courseOverview")} />
 
       <main className="mx-auto flex w-full max-w-[1320px] flex-col gap-6 px-4 py-6 pb-28 sm:px-8 sm:py-8 lg:pb-10">
         {/* Chapter header */}
@@ -76,7 +81,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                 {courseMeta.title}
               </Link>
               <span className="mx-2">/</span>
-              Chapter {number} of {courses.length}
+              {t("common.chapterOf", { n: number, total: courses.length })}
             </p>
             <h1 className="text-2xl font-semibold leading-tight text-brand-black dark:text-white sm:text-[32px]">
               {chapter.title}
@@ -115,14 +120,14 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                   <ClockIcon /> {chapter.duration}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <QuizIcon /> {chapter.quizQuestions.length}-question quiz after the video
+                  <QuizIcon /> {t("lesson.quizAfter", { n: chapter.quizQuestions.length })}
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 {hasAudioChoices ? (
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-brand-gray-light dark:text-white/40">Audio</span>
-                    <div className="flex gap-2" role="radiogroup" aria-label="Audio language">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-brand-gray-light dark:text-white/40">{t("lesson.audio")}</span>
+                    <div className="flex gap-2" role="radiogroup" aria-label={t("lesson.audioAria")}>
                       {lessonAudioLanguages.map((l) => (
                         <button
                           key={l.code}
@@ -142,7 +147,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                     </div>
                   </div>
                 ) : null}
-                <span className="text-xs font-semibold uppercase tracking-wide text-brand-gray-light dark:text-white/40">Subtitles</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-brand-gray-light dark:text-white/40">{t("lesson.subtitles")}</span>
                 <LanguagePicker size="sm" />
                 <button
                   type="button"
@@ -155,13 +160,13 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                       : "border-brand-line text-brand-gray dark:border-white/15 dark:text-white/60"
                   }`}
                 >
-                  CC {captions ? "on" : "off"}
+                  {t(captions ? "lesson.ccOn" : "lesson.ccOff")}
                 </button>
               </div>
             </div>
             {hasAudioChoices || lang !== "EN" ? (
               <p className="-mt-3 text-xs text-brand-gray-light dark:text-white/35">
-                Audio: {audioLang === "EN" ? "English (original video)" : `${lessonAudioLanguages.find((l) => l.code === audioLang)?.label} narration`}. Subtitles are shown in your selected language.
+                {audioLang === "EN" ? t("lesson.audioOriginal") : t("lesson.audioNarration", { language: t(`lang.${audioLang}`) })}
               </p>
             ) : null}
 
@@ -203,7 +208,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                       ))}
                     </div>
                     <div className="flex flex-col gap-3">
-                      <span className="text-sm font-semibold text-brand-black dark:text-white">What you&rsquo;ll learn</span>
+                      <span className="text-sm font-semibold text-brand-black dark:text-white">{t("lesson.learn")}</span>
                       <ul className="flex flex-col gap-2.5">
                         {chapter.infographic.learningPoints.map((p) => (
                           <li key={p} className="flex items-start gap-2.5 text-sm leading-relaxed text-brand-gray dark:text-white/60">
@@ -223,7 +228,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                     {chapter.infographic.steps.map((s, i) => (
                       <li key={s.title} className="flex items-start gap-4">
                         <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-black text-sm font-semibold text-white dark:bg-brand-green">
-                          {i + 1}
+                          {n(i + 1)}
                         </span>
                         <div className="flex flex-col gap-0.5 pt-0.5">
                           <span className="text-[15px] font-semibold text-brand-black dark:text-white">{s.title}</span>
@@ -244,7 +249,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                           className="flex w-full gap-4 rounded-xl px-3 py-2.5 text-left text-sm leading-relaxed transition-colors hover:bg-brand-green-tint dark:hover:bg-white/5"
                         >
                           <span className="w-10 flex-shrink-0 font-semibold tabular-nums text-brand-green-dark dark:text-brand-green">
-                            {formatClock(cue.start)}
+                            {n(formatClock(cue.start))}
                           </span>
                           <span className="text-brand-gray dark:text-white/60">{cue.text[lang]}</span>
                         </button>
@@ -262,9 +267,9 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                   <QuizIcon className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-lg font-semibold">{quizDone ? "Quiz passed — retake any time" : "Finished watching? Take the quiz"}</p>
+                  <p className="text-lg font-semibold">{t(quizDone ? "lesson.quizPassed" : "lesson.finishedWatching")}</p>
                   <p className="text-sm text-white/60">
-                    {chapter.quizQuestions.length} questions &middot; about {Math.max(1, Math.round(chapter.quizQuestions.length * 0.5))} min &middot; completes this chapter
+                    {t("lesson.quizMeta", { n: chapter.quizQuestions.length, m: Math.max(1, Math.round(chapter.quizQuestions.length * 0.5)) })}
                   </p>
                 </div>
               </div>
@@ -272,7 +277,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                 href={`/quiz/${chapter.slug}`}
                 className="group inline-flex w-fit flex-shrink-0 items-center gap-3 rounded-full bg-brand-green py-1.5 pl-6 pr-1.5 text-[15px] font-semibold text-white transition-colors hover:bg-brand-green-dark"
               >
-                {quizDone ? "Retake quiz" : t("lesson.takeQuiz")}
+                {quizDone ? t("lesson.retake") : t("lesson.takeQuiz")}
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-brand-green">
                   <ArrowRight />
                 </span>
@@ -289,7 +294,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                   <ArrowLeft className="h-4 w-4 flex-shrink-0 text-brand-gray-light" />
                   <span className="min-w-0">
                     <span className="block text-xs font-semibold uppercase tracking-wide text-brand-gray-light dark:text-white/35">
-                      Previous chapter
+                      {t("lesson.prev")}
                     </span>
                     <span className="block truncate font-semibold text-brand-black dark:text-white">{prev.title}</span>
                   </span>
@@ -304,7 +309,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                 >
                   <span className="min-w-0">
                     <span className="block text-xs font-semibold uppercase tracking-wide text-brand-gray-light dark:text-white/35">
-                      Next chapter
+                      {t("lesson.next")}
                     </span>
                     <span className="block truncate font-semibold text-brand-black dark:text-white">{next.title}</span>
                   </span>
@@ -316,10 +321,10 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
 
           {/* Course outline */}
           <aside className="hidden lg:block">
-            <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-3xl bg-white p-5 dark:bg-brand-ink">
-              <p className="px-2 pb-1 text-base font-semibold text-brand-black dark:text-white">Course outline</p>
+            <div className="sticky top-24 max-h-[calc(100vh-7rem)] no-scrollbar overflow-y-auto rounded-3xl bg-white p-5 dark:bg-brand-ink">
+              <p className="px-2 pb-1 text-base font-semibold text-brand-black dark:text-white">{t("common.courseOutline")}</p>
               <p className="px-2 pb-4 text-xs text-brand-gray dark:text-white/50">
-                {courses.length} chapters &middot; 1 video + 1 quiz each
+                {t("lesson.outlineMeta", { n: courses.length })}
               </p>
               <ChapterOutline currentSlug={chapter.slug} currentStep="video" />
             </div>

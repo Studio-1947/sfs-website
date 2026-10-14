@@ -7,12 +7,15 @@ import LearnerNav from "@/components/LearnerNav";
 import ChapterStepper from "@/components/learn/ChapterStepper";
 import ChapterOutline from "@/components/learn/ChapterOutline";
 import { useLanguage } from "@/components/LanguageContext";
-import { chapterNumber, chapterStates, course as courseMeta, courses } from "@/lib/data";
+import { chapterNumber, chapterStates, courses } from "@/lib/data";
+import { localizeCourse, localizeCourseMeta } from "@/lib/localize";
 
 export default function QuizPage({ params }: { params: { slug: string } }) {
-  const { t } = useLanguage();
-  const chapter = courses.find((c) => c.slug === params.slug);
-  if (!chapter) return notFound();
+  const { t, lang } = useLanguage();
+  const baseChapter = courses.find((c) => c.slug === params.slug);
+  if (!baseChapter) return notFound();
+  const chapter = localizeCourse(baseChapter, lang);
+  const courseMeta = localizeCourseMeta(lang);
 
   const number = chapterNumber(chapter.slug);
   const state = chapterStates()[number - 1];
@@ -29,7 +32,7 @@ export default function QuizPage({ params }: { params: { slug: string } }) {
                 {courseMeta.title}
               </Link>
               <span className="mx-2">/</span>
-              Chapter {number} of {courses.length} &middot; Quiz
+              {t("quiz.crumb", { n: number, total: courses.length })}
             </p>
             <h2 className="text-lg font-semibold text-brand-gray dark:text-white/60">{chapter.title}</h2>
           </div>
@@ -46,8 +49,8 @@ export default function QuizPage({ params }: { params: { slug: string } }) {
           </div>
 
           <aside className="hidden lg:block">
-            <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-3xl bg-white p-5 dark:bg-brand-ink">
-              <p className="px-2 pb-4 text-base font-semibold text-brand-black dark:text-white">Course outline</p>
+            <div className="sticky top-24 max-h-[calc(100vh-7rem)] no-scrollbar overflow-y-auto rounded-3xl bg-white p-5 dark:bg-brand-ink">
+              <p className="px-2 pb-4 text-base font-semibold text-brand-black dark:text-white">{t("common.courseOutline")}</p>
               <ChapterOutline currentSlug={chapter.slug} currentStep="quiz" />
             </div>
           </aside>

@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { StepState } from "@/lib/data";
+import { useLanguage } from "@/components/LanguageContext";
 import { PlayIcon, QuizIcon, BadgeIcon, StepDot } from "./icons";
 
 /**
@@ -19,18 +22,19 @@ export default function ChapterStepper({
   videoHref?: string;
   quizHref?: string;
 }) {
+  const { t } = useLanguage();
   const videoState: StepState = at === "video" ? (video === "done" ? "done" : "current") : "done";
   const quizState: StepState = at === "quiz" ? "current" : quiz === "done" ? "done" : "todo";
   const doneState: StepState = quiz === "done" ? "done" : "todo";
 
   const steps = [
-    { key: "video", label: "Watch", sub: "1 video", state: videoState, icon: <PlayIcon className="h-3.5 w-3.5" />, href: videoHref },
-    { key: "quiz", label: "Quiz", sub: "Check yourself", state: quizState, icon: <QuizIcon className="h-4 w-4" />, href: quizHref },
-    { key: "done", label: "Complete", sub: "Chapter done", state: doneState, icon: <BadgeIcon className="h-4 w-4" />, href: undefined },
+    { key: "video", label: t("step.watch"), sub: t("step.oneVideo"), state: videoState, icon: <PlayIcon className="h-3.5 w-3.5" />, href: videoHref },
+    { key: "quiz", label: t("common.quiz"), sub: t("step.checkYourself"), state: quizState, icon: <QuizIcon className="h-4 w-4" />, href: quizHref },
+    { key: "done", label: t("step.complete"), sub: t("step.chapterDone"), state: doneState, icon: <BadgeIcon className="h-4 w-4" />, href: undefined },
   ];
 
   return (
-    <ol className="flex items-center gap-2 sm:gap-3" aria-label="Chapter progress">
+    <ol className="flex items-center gap-2 sm:gap-3" aria-label={t("step.aria")}>
       {steps.map((s, i) => {
         const inner = (
           <>
